@@ -1,15 +1,35 @@
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.core.validators import MinLengthValidator, MaxLengthValidator
 
-class Profile(models.Model):
+class User(AbstractUser):
     USER_TYPE_CHOICES = [
         ('customer', 'Customer'),
         ('vendor', 'Vendor'),
     ]
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    phone = models.CharField(max_length=15)
-    usertype = models.CharField(max_length=20, choices=USER_TYPE_CHOICES)
+
+    first_name = models.CharField(max_length=10, blank=True, validators=[MinLengthValidator(limit_value=3), MaxLengthValidator(limit_value=30)])
+    last_name = models.CharField(max_length=10, blank=True, validators=[MinLengthValidator(limit_value=3), MaxLengthValidator(limit_value=30)])
+    email = models.EmailField(max_length=255, unique=True)
+    password = models.CharField(max_length=255)
+    username = None
+    # username = models.CharField(max_length=25)
+    USERNAME_FIELD = 'email'
+    phone = models.CharField(max_length=11)
+    usertype = models.CharField(choices=USER_TYPE_CHOICES)
     address = models.CharField(max_length=100)
     shopname = models.CharField(max_length=100, blank=True, null=True)
-    ssn = models.CharField(blank=True)
-    rate = models.IntegerField(blank=True , default=0)
+    ssn = models.CharField(max_length=14, blank=True)
+    # rate = models.IntegerField(blank=True , default=0)
+    REQUIRED_FIELDS = ['first_name', 'last_name']
+
+
+    @classmethod
+    def usersList(self):
+        return self.objects.all()
+    
+   
+    
+    
+
+    
