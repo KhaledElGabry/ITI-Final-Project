@@ -13,7 +13,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"first_name\":\"salem\",\r\n    \"last_name\":\"omara\",\r\n    \"email\":\"salem@gmail.com\",\r\n    \"password\":\"salem12345\",\r\n    \"phone\":\"010010255\",\r\n    \"usertype\":\"customer\",\r\n    \"address\":\"abcd\",\r\n    \"shopname\":\"playstation\",\r\n    \"ssn\":\"01008551600551\"\r\n}",
+					"raw": "{\r\n    \"first_name\":\"khaled\",\r\n    \"last_name\":\"omara\",\r\n    \"email\":\"khaled@gmail.com\",\r\n    \"password\":\"Khaled12345\",\r\n    \"phone\":\"01001025544\",\r\n    \"usertype\":\"vendor\",\r\n    \"address\":\"abcd\",\r\n    \"shopname\":\"playstation\",\r\n    \"ssn\":\"01008551600554\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -64,7 +64,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"email\":\"salem@gmail.com\",\r\n    \"password\":\"salem12345\"\r\n}",
+					"raw": "{\r\n    \"email\":\"khaled@gmail.com\",\r\n    \"password\":\"Khaled12345\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
