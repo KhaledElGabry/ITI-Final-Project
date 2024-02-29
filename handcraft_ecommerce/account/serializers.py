@@ -40,18 +40,18 @@ class UserSerializer(serializers.ModelSerializer):
         return value
     
     # ssn must be unique and 14 digit
-    def validate_ssn(self, value):
-        if not value.isdigit() or len(value) != 14:
-            raise serializers.ValidationError("SSN must be 14 digits.")
-        if User.objects.filter(ssn=value).exists():
-            raise serializers.ValidationError("SSN must be unique.")
-        return value
+    # def validate_ssn(self, value):
+    #     if not value.isdigit() or len(value) != 14:
+    #         raise serializers.ValidationError("SSN must be 14 digits.")
+    #     if User.objects.filter(ssn=value).exists():
+    #         raise serializers.ValidationError("SSN must be unique.")
+    #     return value
     
     # phone must 11 digit
-    def validate_phone(self, value):
-        if not re.match(r'^01\d{9}$', value):
-            raise serializers.ValidationError("Phone not valid.")
-        return value
+    # def validate_phone(self, value):
+    #     if not re.match(r'^01\d{9}$', value):
+    #         raise serializers.ValidationError("Phone not valid.")
+    #     return value
         
     def validate_password(self, value):
         pattern = re.compile(r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9]).{8,}$')
