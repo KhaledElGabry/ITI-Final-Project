@@ -19,6 +19,8 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'admin_interface',
+    'colorfield',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -28,9 +30,6 @@ INSTALLED_APPS = [
     'account.apps.AccountConfig',
     'rest_framework',
     'corsheaders',
-    'theme.apps.ThemeConfig',
-    'admin_interface',
-    'colorfield',
 ]
 
 MIDDLEWARE = [
