@@ -4,13 +4,15 @@ from rest_framework.exceptions import AuthenticationFailed
 from .serializers import UserSerializer
 from .models import User
 import jwt, datetime
+from rest_framework import status
 
 class RegisterView(APIView):
     def post(self, request):
         serializer = UserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data)
+        print('hello',serializer.save())
+        # return Response(serializer.data)
+        return Response({"message":"success"})
 
 class LoginView(APIView):
     def post(self, request):
@@ -35,28 +37,52 @@ class LoginView(APIView):
 
         response = Response()
 
-        response.set_cookie(key='jwt', value=token, httponly=True)
+        # response.set_cookie(key='jwt', value=token, httponly=True)
         response.data = {
-            'jwt': token  # Decode here if needed
+            "message":"success",
+            "token": token,  # Decode here if needed
+            "user": UserSerializer(user).data
         }
         return response
-
+    
 class UserView(APIView):
-
-    def get(self, request):
-        token = request.COOKIES.get('jwt')
-
-        if not token:
-            raise AuthenticationFailed('Unauthenticated!')
-
+    # delete user
+    def delete(self, request, id):
         try:
-            payload = jwt.decode(token, 'secret', algorithms=['HS256'])
-        except jwt.ExpiredSignatureError:
-            raise AuthenticationFailed('Unauthenticated!')
+            user = User.userDelete(id)
+            return Response({'message': 'User deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    # update user
+    def put(self, request, id):
+        try:
+            user = User.objects.get(id=id)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        user = User.objects.filter(id=payload['id']).first()
-        serializer = UserSerializer(user)
-        return Response(serializer.data)
+        serializer = UserSerializer(user, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+# class UserView(APIView):
+
+#     def get(self, request):
+#         token = request.COOKIES.get('jwt')
+
+#         if not token:
+#             raise AuthenticationFailed('Unauthenticated!')
+
+#         try:
+#             payload = jwt.decode(token, 'secret', algorithms=['HS256'])
+#         except jwt.ExpiredSignatureError:
+#             raise AuthenticationFailed('Unauthenticated!')
+
+#         user = User.objects.filter(id=payload['id']).first()
+#         serializer = UserSerializer(user)
+#         return Response(serializer.data)
 
 class LogoutView(APIView):
     def post(self, request):

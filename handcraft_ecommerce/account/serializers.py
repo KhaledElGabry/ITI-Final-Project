@@ -22,6 +22,14 @@ class UserSerializer(serializers.ModelSerializer):
             instance.set_password(password)
         instance.save()
         return instance
+
+    def update(self, instance, validated_data):
+        password = validated_data.get('password')
+        if password is not None:
+            instance.set_password(password)
+
+        instance.save()
+        return instance
     
     # first_name must 3 to 10 characters
     def validate_first_name(self, value):
@@ -68,6 +76,8 @@ class UserSerializer(serializers.ModelSerializer):
         shopname = data.get('shopname')
 
         if usertype == 'vendor':
+            if User.objects.filter(ssn=ssn).exists():
+                raise serializers.ValidationError("SSN must be unique.")
             if not ssn:
                 raise serializers.ValidationError("SSN is required for vendor.")
             if not shopname:
