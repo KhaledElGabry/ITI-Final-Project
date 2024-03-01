@@ -14,11 +14,11 @@ class User(AbstractUser):
     password = models.CharField(max_length=255)
     username = None
     USERNAME_FIELD = 'email'
-    phone = models.CharField(max_length=11, validators=[RegexValidator(regex='^01\d{9}$', message='Invalid phone number', code='invalid_phone')], null=True)
+    phone = models.CharField(max_length=11, validators=[RegexValidator(regex=r'^01\d{9}$', message='Invalid phone number', code='invalid_phone')], blank=True)
     usertype = models.CharField(choices=USER_TYPE_CHOICES)
-    address = models.CharField(max_length=100, null=True)
-    shopname = models.CharField(max_length=100, null=True)
-    ssn = models.CharField(max_length=14, validators=[RegexValidator(regex='^[0-9]{14}$', message='SSN must be 14 numeric digits', code='invalid_ssn')], null=True)
+    address = models.CharField(max_length=100, blank=True)
+    shopname = models.CharField(max_length=100, blank=True)
+    ssn = models.CharField(max_length=14, validators=[RegexValidator(regex='^[0-9]{14}$', message='SSN must be 14 numeric digits', code='invalid_ssn')], unique=True, null=True)
     
     # rate = models.IntegerField(blank=True , default=0)
     REQUIRED_FIELDS = ['first_name', 'last_name']
@@ -26,3 +26,7 @@ class User(AbstractUser):
     @classmethod
     def usersList(self):
         return self.objects.all()
+    
+    @classmethod
+    def userDelete(self,id):
+        return self.objects.filter(id=id).delete()

@@ -80,11 +80,11 @@ WSGI_APPLICATION = 'handcraft_ecommerce.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'FinalProjectDjango',
+        'NAME': 'HC-DB',
         'HOST': 'localhost',
         'PORT': '5432',
-        'USER': 'postgres',
-        'PASSWORD': 'omara',
+        'USER': 'handcraftadmin',
+        'PASSWORD': 'handcraftadmin00',
     }
 }
 
