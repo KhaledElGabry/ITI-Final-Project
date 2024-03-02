@@ -6,13 +6,39 @@ from .models import User
 import jwt, datetime
 from rest_framework import status
 
+
+from django.core.mail import send_mail
+from django.conf import settings
+from django.contrib.sites.shortcuts import get_current_site
+from django.template.loader import render_to_string
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
+from django.urls import reverse
+from .tokens import account_activation_token  # You need to create this token generator
+from django.core.mail import EmailMessage
 class RegisterView(APIView):
     def post(self, request):
         serializer = UserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        print('hello',serializer.save())
-        # return Response(serializer.data)
-        return Response({"message":"success"})
+        user = serializer.save()
+
+        # Send verification email
+        self.send_verification_email(request, user)
+
+        return Response({"message": "success"})
+
+    def send_verification_email(self, request, user):
+        current_site = get_current_site(request)
+        subject = 'Activate Your Account'
+        domain = request.get_host()  # Get the domain from the request
+        verification_link = f'http://{domain}/activate/?uid={urlsafe_base64_encode(force_bytes(user.pk))}&token={account_activation_token.make_token(user)}'
+        message = f'Hello {user.username},\n\nPlease click on the following link to activate your account:\n{verification_link}'
+        email = EmailMessage(
+            subject=subject,
+            body=message,
+            to=[user.email],
+        )
+        email.send()
 
 class LoginView(APIView):
     def post(self, request):
@@ -98,3 +124,5 @@ class allUsers(APIView):
         users=User.usersList()
         dataJSON=UserSerializer(users,many=True).data
         return Response({'Users':dataJSON})
+    
+    
