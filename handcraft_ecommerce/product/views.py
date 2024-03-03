@@ -12,8 +12,8 @@ from rest_framework import generics
 
 @api_view(['GET'])
 def productListApi(request):
-     Products = Product.objects.all()
-     data = ProductSerializer(Products, many=True).data
+     products = Product.objects.all()
+     data = ProductSerializer(products, many=True).data
      return Response({'data':data})
 
 
@@ -30,10 +30,11 @@ def productDetailsApi(request, id):
 
 # All Category List and Details 
 
+
 @api_view(['GET'])
 def categoryListApi(request):
-     Categories = Category.objects.all()
-     data = CategorySerializer(Categories, many=True).data
+     categories = Category.objects.all()
+     data = CategorySerializer(categories, many=True).data
      return Response({'data':data})
 
 
@@ -43,6 +44,27 @@ def categoryDetailsApi(request, id):
      categoryDetails = Category.objects.get(id=id)
      data = CategorySerializer(categoryDetails).data
      return Response({'data':data})
+
+
+
+
+# All SubCategory List and Details 
+
+
+@api_view(['GET'])
+def subCategoryListApi(request):
+     subCategories = SubCategory.objects.all()
+     data = SubCategorySerializer(subCategories, many=True).data
+     return Response({'data':data})
+
+
+
+@api_view(['GET'])
+def subCategoryDetailsApi(request, id):
+     subCategoriesDetails = SubCategory.objects.get(id=id)
+     data = SubCategorySerializer(subCategoriesDetails).data
+     return Response({'data':data})
+
 
 
 
