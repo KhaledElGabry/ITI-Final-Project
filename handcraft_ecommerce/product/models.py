@@ -4,7 +4,8 @@ from django.core.validators import MinValueValidator, MaxValueValidator, FileExt
 
 
 class Product(models.Model):
-     prodName = models.CharField(max_length=100, on_delete=models.CASCADE, verbose_name=('Product Name'))
+     # vendor = models.ForeignKey(vendor, on_delete=models.CASCADE)
+     prodName = models.CharField(max_length=100, verbose_name=('Product Name'))
      prodPrice = models.DecimalField(default=0, decimal_places=2, max_digits=5, verbose_name=('Product Price'))
      prodQuantity = models.IntegerField(default=1, verbose_name=('Product Quantity'))
      prodDescription = models.TextField(max_length=450, default='', blank=False, null=False, verbose_name=('Product Description'))
