@@ -10,4 +10,7 @@ urlpatterns = [
      path('product/', views.productListApi, name='productListApi'),
      path('product/<int:id>', views.productDetailsApi, name='productDetailsApi'),
 
+
+     
+
 ]
