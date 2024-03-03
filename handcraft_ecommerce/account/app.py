@@ -33,4 +33,4 @@ def upload_photo(file_path,userId):
         media_body=file_path
     ).execute()
 
-upload_photo(os.path.join(script_dir, "3.jpg"),555)
+# upload_photo(os.path.join(script_dir, "3.jpg"),555)
