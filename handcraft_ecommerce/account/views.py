@@ -30,7 +30,8 @@ class RegisterView(APIView):
     def send_verification_email(self, request, user):
         current_site = get_current_site(request)
         subject = 'Activate Your Account'
-        domain = request.get_host()  # Get the domain from the request
+        # domain = request.get_host()  # Get the domain from the request
+        domain = "localhost:3000"
         verification_link = f'http://{domain}/activate/?uid={urlsafe_base64_encode(force_bytes(user.pk))}&token={account_activation_token.make_token(user)}'
         message = f'Hello {user.username},\n\nPlease click on the following link to activate your account:\n{verification_link}'
         email = EmailMessage(
@@ -52,6 +53,9 @@ class LoginView(APIView):
 
         if not user.check_password(password):
             raise AuthenticationFailed('Incorrect password!')
+
+        if not user.is_active:
+            raise AuthenticationFailed('Please Active Email First!')
 
         payload = {
             'id': user.id,
@@ -87,10 +91,10 @@ class UserView(APIView):
         except User.DoesNotExist:
             return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        serializer = UserSerializer(user, data=request.data)
+        serializer = UserSerializer(user, data=request.data,partial=True)
         if serializer.is_valid():
             serializer.save()
-            return Response({'message': 'Data Updated Successfully'})
+            return Response({'message': 'Data Updated Successfully', "user":serializer.data})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # class UserView(APIView):
