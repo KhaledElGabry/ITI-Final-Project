@@ -14,7 +14,7 @@ class Product(models.Model):
      prodOnSale = models.BooleanField(default=False, verbose_name=('On Sale'))
      prodRating = models.FloatField(default=0.0, validators=[MinValueValidator(0.0, "Rating must be at least 0.0"), MaxValueValidator(5.0, "Rating cannot exceed 5.0")], verbose_name=('Rate'))
      # prodSlug = models.SlugField(blank=True, null=True)
-     # prodImageCover = models.ImageField(upload_to='product/', default='static/covers/no-product.png', validators=[FileExtensionValidator(['png','jpg','jpeg'])], verbose_name=('Product Image Cover'))
+     prodImageCover = models.ImageField(upload_to='product/', default='static/covers/no-product.png', validators=[FileExtensionValidator(['png','jpg','jpeg'])], verbose_name=('Product Image Cover'))
      prodImages = models.ManyToManyField('ProductImage', blank=False)
 
      class Meta:
