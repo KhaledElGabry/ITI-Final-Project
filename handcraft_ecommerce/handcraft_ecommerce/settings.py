@@ -8,7 +8,7 @@ EMAIL_HOST_PASSWORD = 'tsgzwmjkboqdxhla'
 DEFAULT_FROM_EMAIL = 'shoroukwagih1511@gmail.com'
 
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+# Build paths inside the project like this: BASE_DIR / 'subdir'.cle
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 

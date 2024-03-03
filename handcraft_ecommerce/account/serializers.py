@@ -9,7 +9,7 @@ from django.core.files.uploadedfile import TemporaryUploadedFile
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'first_name', 'last_name', 'email', 'password', 'phone', 'usertype', 'address', 'shopname', 'ssn', 'is_superuser', 'image']
+        fields = ['id', 'first_name', 'last_name', 'email', 'password', 'phone', 'usertype', 'address', 'shopname', 'ssn', 'is_superuser','is_active']
         # not show pass to user
         extra_kwargs = {
             'first_name': {'required': True, 'allow_blank': False, 'min_length': 3, 'max_length': 10},
@@ -26,8 +26,8 @@ class UserSerializer(serializers.ModelSerializer):
             instance.set_password(password)
         # script_dir = os.path.dirname(os.path.abspath(__file__))
         # upload_photo(os.path.join(script_dir, "4.jpg"),5)
-        upload_photo(validated_data['image'],88)
-        print(validated_data['image'])
+        # upload_photo(validated_data['image'],88)
+        # print(validated_data['image'])
         # if isinstance(validated_data['image'], TemporaryUploadedFile):
         #     image_path = validated_data['image'].temporary_file_path()
         # else:
