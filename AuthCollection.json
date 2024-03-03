@@ -13,7 +13,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"first_name\":\"ali\",\r\n    \"last_name\":\"omara\",\r\n    \"email\":\"ali2@gmail.com\",\r\n    \"password\":\"Ali12345\",\r\n    \"usertype\":\"customer\"\r\n}",
+					"raw": "{\r\n    \"first_name\":\"ali\",\r\n    \"last_name\":\"omara\",\r\n    \"email\":\"ali8@gmail.com\",\r\n    \"password\":\"Ali12345\",\r\n    \"usertype\":\"customer\",\r\n    \"phone\":\"01001025555\"\r\n    \r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -21,15 +21,11 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:8000/api/register/",
-					"protocol": "http",
+					"raw": "{{BaseUrl}}register/",
 					"host": [
-						"localhost"
+						"{{BaseUrl}}register"
 					],
-					"port": "8000",
 					"path": [
-						"api",
-						"register",
 						""
 					]
 				}
@@ -42,15 +38,11 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:8000/api/allUser/",
-					"protocol": "http",
+					"raw": "{{BaseUrl}}allUser/",
 					"host": [
-						"localhost"
+						"{{BaseUrl}}allUser"
 					],
-					"port": "8000",
 					"path": [
-						"api",
-						"allUser",
 						""
 					]
 				}
@@ -64,7 +56,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"email\":\"khaled@gmail.com\",\r\n    \"password\":\"Khaled12345\"\r\n}",
+					"raw": "{\r\n    \"email\":\"ali6@gmail.com\",\r\n    \"password\":\"Ali12345\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -72,15 +64,11 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:8000/api/login/",
-					"protocol": "http",
+					"raw": "{{BaseUrl}}login/",
 					"host": [
-						"localhost"
+						"{{BaseUrl}}login"
 					],
-					"port": "8000",
 					"path": [
-						"api",
-						"login",
 						""
 					]
 				}
@@ -93,15 +81,11 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:8000/api/user/",
-					"protocol": "http",
+					"raw": "{{BaseUrl}}user/",
 					"host": [
-						"localhost"
+						"{{BaseUrl}}user"
 					],
-					"port": "8000",
 					"path": [
-						"api",
-						"user",
 						""
 					]
 				}
@@ -114,20 +98,87 @@
 				"method": "POST",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:8000/api/logout/",
-					"protocol": "http",
+					"raw": "{{BaseUrl}}logout/",
 					"host": [
-						"localhost"
+						"{{BaseUrl}}logout"
 					],
-					"port": "8000",
 					"path": [
-						"api",
-						"logout",
 						""
 					]
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "Delete_User",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{BaseUrl}}api/1/",
+					"host": [
+						"{{BaseUrl}}api"
+					],
+					"path": [
+						"1",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update_User",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"first_name\": \"salemmmmm\",\r\n    \"last_name\": \"omara\",\r\n    \"email\": \"ali6@gmail.com\",\r\n    \"password\":\"Ali12345\",\r\n    \"phone\": \"01001025555\",\r\n    \"usertype\": \"customer\",\r\n    \"address\": \"\",\r\n    \"shopname\": \"\",\r\n    \"ssn\": null,\r\n    \"is_superuser\": false\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{BaseUrl}}6/",
+					"host": [
+						"{{BaseUrl}}6"
+					],
+					"path": [
+						""
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "BaseUrl",
+			"value": "http://localhost:8000/api/",
+			"type": "string"
 		}
 	]
 }

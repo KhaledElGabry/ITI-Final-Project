@@ -3,14 +3,63 @@ from rest_framework.response import Response
 from rest_framework.exceptions import AuthenticationFailed
 from .serializers import UserSerializer
 from .models import User
-import jwt, datetime
+import jwt
+import datetime
+from rest_framework import status
+
+from django.core.mail import send_mail
+from django.conf import settings
+from django.contrib.sites.shortcuts import get_current_site
+from django.template.loader import render_to_string
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
+from django.urls import reverse
+from .tokens import account_activation_token  # You need to create this token generator
+from django.core.mail import EmailMessage
+from django.utils.http import urlsafe_base64_decode
 
 class RegisterView(APIView):
     def post(self, request):
         serializer = UserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data)
+        user = serializer.save()
+
+        # Send verification email
+        self.send_verification_email(request, user)
+
+        return Response({"message": "success"})
+
+    def send_verification_email(self, request, user):
+        current_site = get_current_site(request)
+        subject = 'Activate Your Account'
+        # domain = request.get_host()  # Get the domain from the request
+        domain = "localhost:3000"
+        verification_link = f'http://{domain}/activate/?uid={urlsafe_base64_encode(force_bytes(user.pk))}&token={account_activation_token.make_token(user)}'
+        message = f'Hello {user.username},\n\nPlease click on the following link to activate your account:\n{verification_link}'
+        email = EmailMessage(
+            subject=subject,
+            body=message,
+            to=[user.email],
+        )
+        email.send()
+
+class ActivateAccount(APIView):
+    def get(self, request):
+        uidb64 = request.GET.get('uid')
+        token = request.GET.get('token')
+        
+        try:
+            uid = force_bytes(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(pk=uid)
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            user = None
+
+        if user is not None and account_activation_token.check_token(user, token):
+            user.is_active = True
+            user.save()
+            return Response({'message': 'Account activated successfully'}, status=status.HTTP_200_OK)
+        else:
+            return Response({'error': 'Invalid activation link'}, status=status.HTTP_400_BAD_REQUEST)
 
 class LoginView(APIView):
     def post(self, request):
@@ -25,6 +74,9 @@ class LoginView(APIView):
         if not user.check_password(password):
             raise AuthenticationFailed('Incorrect password!')
 
+        if not user.is_active:
+            raise AuthenticationFailed('Please Active Email First!')
+
         payload = {
             'id': user.id,
             'exp': datetime.datetime.utcnow() + datetime.timedelta(days=1), # expiration 1 day
@@ -35,28 +87,35 @@ class LoginView(APIView):
 
         response = Response()
 
-        response.set_cookie(key='jwt', value=token, httponly=True)
+        # response.set_cookie(key='jwt', value=token, httponly=True)
         response.data = {
-            'jwt': token  # Decode here if needed
+            "message":"success",
+            "token": token,  # Decode here if needed
+            "user": UserSerializer(user).data
         }
         return response
-
+    
 class UserView(APIView):
-
-    def get(self, request):
-        token = request.COOKIES.get('jwt')
-
-        if not token:
-            raise AuthenticationFailed('Unauthenticated!')
-
+    # delete user
+    def delete(self, request, id):
         try:
-            payload = jwt.decode(token, 'secret', algorithms=['HS256'])
-        except jwt.ExpiredSignatureError:
-            raise AuthenticationFailed('Unauthenticated!')
+            user = User.userDelete(id)
+            return Response({'message': 'User deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    # update user
+    def put(self, request, id):
+        try:
+            user = User.objects.get(id=id)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        user = User.objects.filter(id=payload['id']).first()
-        serializer = UserSerializer(user)
-        return Response(serializer.data)
+        serializer = UserSerializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'message': 'Data Updated Successfully', "user":serializer.data})
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class LogoutView(APIView):
     def post(self, request):
@@ -68,7 +127,7 @@ class LogoutView(APIView):
         return response
 
 class allUsers(APIView):
-    def get(self,request):
-        users=User.usersList()
-        dataJSON=UserSerializer(users,many=True).data
-        return Response({'Users':dataJSON})
+    def get(self, request):
+        users = User.usersList()
+        dataJSON = UserSerializer(users, many=True).data
+        return Response({'Users': dataJSON})

@@ -1,6 +1,8 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.core.validators import MinLengthValidator, MaxLengthValidator, RegexValidator
+# from app import upload_photo
+# import os
 
 class User(AbstractUser):
     USER_TYPE_CHOICES = [
@@ -14,15 +16,21 @@ class User(AbstractUser):
     password = models.CharField(max_length=255)
     username = None
     USERNAME_FIELD = 'email'
-    phone = models.CharField(max_length=11, validators=[RegexValidator(regex='^01\d{9}$', message='Invalid phone number', code='invalid_phone')], null=True)
+    phone = models.CharField(max_length=11, validators=[RegexValidator(regex=r'^01\d{9}$', message='Invalid phone number', code='invalid_phone')], blank=True)
     usertype = models.CharField(choices=USER_TYPE_CHOICES)
-    address = models.CharField(max_length=100, null=True)
-    shopname = models.CharField(max_length=100, null=True)
-    ssn = models.CharField(max_length=14, validators=[RegexValidator(regex='^[0-9]{14}$', message='SSN must be 14 numeric digits', code='invalid_ssn')], null=True)
-    
+    address = models.CharField(max_length=100, blank=True)
+    shopname = models.CharField(max_length=100, blank=True)
+    ssn = models.CharField(max_length=14, validators=[RegexValidator(regex='^[0-9]{14}$', message='SSN must be 14 numeric digits', code='invalid_ssn')], unique=True, null=True)
+    # image = models.ImageField(null=True)
+    # upload_photo(os.path.join(script_dir, "2.jpg"),5)
+    is_active=models.BooleanField(default = False, help_text='Designates whether this user should be treated as active. Unselect this instead of deleting accounts.', verbose_name='active')
     # rate = models.IntegerField(blank=True , default=0)
     REQUIRED_FIELDS = ['first_name', 'last_name']
 
     @classmethod
     def usersList(self):
         return self.objects.all()
+    
+    @classmethod
+    def userDelete(self,id):
+        return self.objects.filter(id=id).delete()
