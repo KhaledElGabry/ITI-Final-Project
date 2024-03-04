@@ -7,32 +7,6 @@
 	},
 	"item": [
 		{
-			"name": "Make_Admin",
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n    \"first_name\":\"admin\",\r\n    \"last_name\":\"admin\",\r\n    \"username\":\"admin\",\r\n    \"email\":\"admin@gmail.com\",\r\n    \"password\":\"Admin12345\",\r\n    \"usertype\":null,\r\n    \"is_superuser\":true,\r\n    \"is_active\":true,\r\n    \"image\":null\r\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{BaseUrl}}register/",
-					"host": [
-						"{{BaseUrl}}register"
-					],
-					"path": [
-						""
-					]
-				}
-			},
-			"response": []
-		},
-		{
 			"name": "Register",
 			"request": {
 				"method": "POST",
