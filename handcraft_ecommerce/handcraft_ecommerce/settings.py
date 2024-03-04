@@ -6,6 +6,7 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'itifellas@gmail.com'
 EMAIL_HOST_PASSWORD = 'tsgzwmjkboqdxhla'
 DEFAULT_FROM_EMAIL = 'shoroukwagih1511@gmail.com'
+import os
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.cle
@@ -122,6 +123,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = 'static/'
+MEDIA_URL = 'media/' # localhost:8000/media
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
 
 AUTH_USER_MODEL = 'account.User'
 
