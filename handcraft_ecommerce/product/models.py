@@ -1,10 +1,12 @@
 from tabnanny import verbose
+from tkinter import CASCADE
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator, FileExtensionValidator
+from ..account.models import User
 
 
 class Product(models.Model):
-     # vendor = models.ForeignKey(vendor, on_delete=models.CASCADE)
+     user = models.ForeignKey(User, on_delete=models.CASCADE, on_delete=models.SET_NULL, null=True)
      prodName = models.CharField(max_length=100, verbose_name=('Product Name'))
      prodPrice = models.DecimalField(default=0, decimal_places=2, max_digits=5, verbose_name=('Product Price'))
      prodQuantity = models.IntegerField(default=1, verbose_name=('Product Quantity'))
@@ -70,3 +72,8 @@ class SubCategory(models.Model):
 
      def __str__(self):
           return self.subCateName
+     
+
+class Order(models.Model):
+     user = models.ForeignKey(User, on_delete=models.CASCADE, on_delete=models.SET_NULL, null=True)
+     product = models.ForeignKey(Product, on_delete=models.CASCADE, on_delete=models.SET_NULL, null=True)
