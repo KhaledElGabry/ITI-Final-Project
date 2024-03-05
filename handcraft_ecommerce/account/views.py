@@ -3,10 +3,14 @@ from rest_framework.response import Response
 from rest_framework.exceptions import AuthenticationFailed
 from .serializers import UserSerializer
 from .models import User
-import jwt, datetime
+import jwt
+import datetime
 from rest_framework import status
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> f6f70e3b156bee6e865922c276a4af8b2efd4565
 from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
@@ -16,6 +20,11 @@ from django.utils.encoding import force_bytes
 from django.urls import reverse
 from .tokens import account_activation_token  # You need to create this token generator
 from django.core.mail import EmailMessage
+<<<<<<< HEAD
+=======
+from django.utils.http import urlsafe_base64_decode
+
+>>>>>>> f6f70e3b156bee6e865922c276a4af8b2efd4565
 class RegisterView(APIView):
     def post(self, request):
         serializer = UserSerializer(data=request.data)
@@ -30,7 +39,12 @@ class RegisterView(APIView):
     def send_verification_email(self, request, user):
         current_site = get_current_site(request)
         subject = 'Activate Your Account'
+<<<<<<< HEAD
         domain = request.get_host()  # Get the domain from the request
+=======
+        # domain = request.get_host()  # Get the domain from the request
+        domain = "localhost:3000"
+>>>>>>> f6f70e3b156bee6e865922c276a4af8b2efd4565
         verification_link = f'http://{domain}/activate/?uid={urlsafe_base64_encode(force_bytes(user.pk))}&token={account_activation_token.make_token(user)}'
         message = f'Hello {user.username},\n\nPlease click on the following link to activate your account:\n{verification_link}'
         email = EmailMessage(
@@ -39,6 +53,27 @@ class RegisterView(APIView):
             to=[user.email],
         )
         email.send()
+<<<<<<< HEAD
+=======
+
+class ActivateAccount(APIView):
+    def get(self, request):
+        uidb64 = request.GET.get('uid')
+        token = request.GET.get('token')
+        
+        try:
+            uid = force_bytes(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(pk=uid)
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            user = None
+
+        if user is not None and account_activation_token.check_token(user, token):
+            user.is_active = True
+            user.save()
+            return Response({'message': 'Account activated successfully'}, status=status.HTTP_200_OK)
+        else:
+            return Response({'error': 'Invalid activation link'}, status=status.HTTP_400_BAD_REQUEST)
+>>>>>>> f6f70e3b156bee6e865922c276a4af8b2efd4565
 
 class LoginView(APIView):
     def post(self, request):
@@ -52,6 +87,9 @@ class LoginView(APIView):
 
         if not user.check_password(password):
             raise AuthenticationFailed('Incorrect password!')
+
+        if not user.is_active:
+            raise AuthenticationFailed('Please Active Email First!')
 
         payload = {
             'id': user.id,
@@ -87,28 +125,11 @@ class UserView(APIView):
         except User.DoesNotExist:
             return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        serializer = UserSerializer(user, data=request.data)
+        serializer = UserSerializer(user, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data)
+            return Response({'message': 'Data Updated Successfully', "user":serializer.data})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-# class UserView(APIView):
-
-#     def get(self, request):
-#         token = request.COOKIES.get('jwt')
-
-#         if not token:
-#             raise AuthenticationFailed('Unauthenticated!')
-
-#         try:
-#             payload = jwt.decode(token, 'secret', algorithms=['HS256'])
-#         except jwt.ExpiredSignatureError:
-#             raise AuthenticationFailed('Unauthenticated!')
-
-#         user = User.objects.filter(id=payload['id']).first()
-#         serializer = UserSerializer(user)
-#         return Response(serializer.data)
 
 class LogoutView(APIView):
     def post(self, request):
@@ -120,9 +141,16 @@ class LogoutView(APIView):
         return response
 
 class allUsers(APIView):
+<<<<<<< HEAD
     def get(self,request):
         users=User.usersList()
         dataJSON=UserSerializer(users,many=True).data
         return Response({'Users':dataJSON})
     
     
+=======
+    def get(self, request):
+        users = User.usersList()
+        dataJSON = UserSerializer(users, many=True).data
+        return Response({'Users': dataJSON})
+>>>>>>> f6f70e3b156bee6e865922c276a4af8b2efd4565

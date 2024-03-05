@@ -1,11 +1,15 @@
 from rest_framework import serializers
 from .models import User
 import re
+from .app import upload_photo
+import os
+from django.core.files.uploadedfile import TemporaryUploadedFile
+
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'first_name', 'last_name', 'email', 'password', 'phone', 'usertype', 'address', 'shopname', 'ssn', 'is_superuser']
+        fields = ['id', 'first_name', 'last_name', 'email', 'password', 'phone', 'usertype', 'address', 'shopname', 'ssn', 'is_superuser','is_active']
         # not show pass to user
         extra_kwargs = {
             'first_name': {'required': True, 'allow_blank': False, 'min_length': 3, 'max_length': 10},
@@ -20,14 +24,35 @@ class UserSerializer(serializers.ModelSerializer):
         instance = self.Meta.model(**validated_data)
         if password is not None:
             instance.set_password(password)
+        # script_dir = os.path.dirname(os.path.abspath(__file__))
+        # upload_photo(os.path.join(script_dir, "4.jpg"),5)
+        # upload_photo(validated_data['image'],88)
+        # print(validated_data['image'])
+        # if isinstance(validated_data['image'], TemporaryUploadedFile):
+        #     image_path = validated_data['image'].temporary_file_path()
+        # else:
+        #     # Assuming 'image' contains the file path
+        #     image_path = validated_data['image']
+
+        # Call the upload_photo function after saving the instance
+        # upload_photo(image_path, 99)
+
+
         instance.save()
         return instance
-
+    
+    # update furst name , last , phone , address , 
     def update(self, instance, validated_data):
-        password = validated_data.get('password')
-        if password is not None:
-            instance.set_password(password)
-
+        instance.first_name=validated_data['first_name']
+        instance.last_name=validated_data['last_name']
+        # instance.email=validated_data['email']
+        # password = validated_data.get('password')
+        # if password is not None:
+        #     instance.set_password(password)
+        instance.phone=validated_data['phone']
+        # instance.ssn=validated_data['ssn']
+        instance.address=validated_data['address']
+        
         instance.save()
         return instance
     
