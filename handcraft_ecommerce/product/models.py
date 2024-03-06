@@ -6,8 +6,8 @@ from account.models import User
 
 
 class Product(models.Model):
-     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
-     prodName = models.CharField(max_length=100, verbose_name=('Product Name'))
+     prodVendor = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+     prodName = models.CharField(max_length=100, verbose_name=('Product Title'))
      prodPrice = models.DecimalField(default=0, decimal_places=2, max_digits=5, verbose_name=('Product Price'))
      prodQuantity = models.IntegerField(default=1, verbose_name=('Product Quantity'))
      prodDescription = models.TextField(max_length=450, default='', blank=False, null=False, verbose_name=('Product Description'))
@@ -74,6 +74,16 @@ class SubCategory(models.Model):
           return self.subCateName
      
 
-class Order(models.Model):
-     user = models.ForeignKey(User, on_delete=models.CASCADE, on_delete=models.SET_NULL, null=True)
-     product = models.ForeignKey(Product, on_delete=models.CASCADE, on_delete=models.SET_NULL, null=True)
+# class Order(models.Model):
+#      ordCustomer = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+     # ordTime = models.DateTimeField(auto_now_add=True)
+     
+     
+     
+     
+# class OrderItems(models.Model):
+#      ordItmOrder = models.ForeignKey(Order,  on_delete=models.CASCADE, null=True)
+#      ordProduct = models.ForeignKey(Product,  on_delete=models.CASCADE, null=True)
+     
+     #   def __str__(self):
+     #      return self.ordProduct.prodName
