@@ -7,10 +7,6 @@ import jwt
 import datetime
 from rest_framework import status
 
-<<<<<<< HEAD
-
-=======
->>>>>>> f6f70e3b156bee6e865922c276a4af8b2efd4565
 from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
@@ -20,11 +16,10 @@ from django.utils.encoding import force_bytes
 from django.urls import reverse
 from .tokens import account_activation_token  # You need to create this token generator
 from django.core.mail import EmailMessage
-<<<<<<< HEAD
-=======
+
 from django.utils.http import urlsafe_base64_decode
 
->>>>>>> f6f70e3b156bee6e865922c276a4af8b2efd4565
+
 class RegisterView(APIView):
     def post(self, request):
         serializer = UserSerializer(data=request.data)
@@ -39,12 +34,8 @@ class RegisterView(APIView):
     def send_verification_email(self, request, user):
         current_site = get_current_site(request)
         subject = 'Activate Your Account'
-<<<<<<< HEAD
-        domain = request.get_host()  # Get the domain from the request
-=======
         # domain = request.get_host()  # Get the domain from the request
         domain = "localhost:3000"
->>>>>>> f6f70e3b156bee6e865922c276a4af8b2efd4565
         verification_link = f'http://{domain}/activate/?uid={urlsafe_base64_encode(force_bytes(user.pk))}&token={account_activation_token.make_token(user)}'
         message = f'Hello {user.username},\n\nPlease click on the following link to activate your account:\n{verification_link}'
         email = EmailMessage(
@@ -53,8 +44,7 @@ class RegisterView(APIView):
             to=[user.email],
         )
         email.send()
-<<<<<<< HEAD
-=======
+
 
 class ActivateAccount(APIView):
     def get(self, request):
@@ -73,7 +63,7 @@ class ActivateAccount(APIView):
             return Response({'message': 'Account activated successfully'}, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'Invalid activation link'}, status=status.HTTP_400_BAD_REQUEST)
->>>>>>> f6f70e3b156bee6e865922c276a4af8b2efd4565
+
 
 class LoginView(APIView):
     def post(self, request):
@@ -141,16 +131,15 @@ class LogoutView(APIView):
         return response
 
 class allUsers(APIView):
-<<<<<<< HEAD
+
     def get(self,request):
         users=User.usersList()
         dataJSON=UserSerializer(users,many=True).data
         return Response({'Users':dataJSON})
     
     
-=======
+
     def get(self, request):
         users = User.usersList()
         dataJSON = UserSerializer(users, many=True).data
         return Response({'Users': dataJSON})
->>>>>>> f6f70e3b156bee6e865922c276a4af8b2efd4565
