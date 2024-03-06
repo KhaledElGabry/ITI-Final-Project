@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Product, Category, SubCategory, ProductImage
+from account.serializers import UserSerializer
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -29,6 +30,7 @@ class ProductSerializer(serializers.ModelSerializer):
           model = Product
           fields = '__all__'
 
+     prodVendor = UserSerializer()
      prodCategory = CategorySerializer()
      prodSubCategory = SubCategorySerializer()
      prodImages = ProductImageSerializer(many=True)
