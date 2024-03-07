@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import RegisterView, LoginView, UserView, LogoutView, allUsers
+from .views import *
 
 urlpatterns = [
         path('register/', RegisterView.as_view()),
@@ -9,4 +9,5 @@ urlpatterns = [
         path('allUser/', allUsers.as_view()),
         # delete & update based on method type delete/put
         path('<int:id>/', UserView.as_view()),
+        path('verify-email/', verify_email, name='verify_email')
 ]

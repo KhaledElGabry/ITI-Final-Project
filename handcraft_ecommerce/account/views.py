@@ -9,7 +9,7 @@ from rest_framework import status
 from .app import upload_photo,delete_photos
 import os
 from urllib.parse import unquote
-
+from django.http import HttpResponse
 from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
@@ -20,6 +20,7 @@ from django.urls import reverse
 from .tokens import account_activation_token  # You need to create this token generator
 from django.core.mail import EmailMessage
 
+from .utils import generate_verification_token
 from django.utils.http import urlsafe_base64_decode
 
 
@@ -31,44 +32,16 @@ class RegisterView(APIView):
         # print(request.data['image'])
 
         user = serializer.save()
+        
+        
+        token = generate_verification_token()
+        user.verification_token = token
+        user.save()
 
         # Send verification email
-        self.send_verification_email(request, user)
+        send_verification_email(user)
 
         return Response({"message": "success"})
-
-    def send_verification_email(self, request, user):
-        current_site = get_current_site(request)
-        subject = 'Activate Your Account'
-        # domain = request.get_host()  # Get the domain from the request
-        domain = "localhost:3000"
-        verification_link = f'http://{domain}/activate/?uid={urlsafe_base64_encode(force_bytes(user.pk))}&token={account_activation_token.make_token(user)}'
-        message = f'Hello {user.username},\n\nPlease click on the following link to activate your account:\n{verification_link}'
-        email = EmailMessage(
-            subject=subject,
-            body=message,
-            to=[user.email],
-        )
-        email.send()
-
-
-class ActivateAccount(APIView):
-    def get(self, request):
-        uidb64 = request.GET.get('uid')
-        token = request.GET.get('token')
-        
-        try:
-            uid = force_bytes(urlsafe_base64_decode(uidb64))
-            user = User.objects.get(pk=uid)
-        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
-            user = None
-
-        if user is not None and account_activation_token.check_token(user, token):
-            user.is_active = True
-            user.save()
-            return Response({'message': 'Account activated successfully'}, status=status.HTTP_200_OK)
-        else:
-            return Response({'error': 'Invalid activation link'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class LoginView(APIView):
@@ -187,3 +160,21 @@ class allUsers(APIView):
         User.objects.all().delete()
         return Response({'message': 'All users deleted successfully'})
 
+def verify_email(request):
+    token = request.GET.get('token')
+    if token:
+        try:
+            user = User.objects.get(verification_token=token)
+            user.is_verified = True
+            user.save()
+            return HttpResponse('Email verified successfully!')
+        except User.DoesNotExist:
+            return HttpResponse('Invalid token!')
+    else:
+        return HttpResponse('Token parameter is missing!')
+    
+
+def send_verification_email(user):
+    subject = 'Email Verification'
+    message = f'Click the following link to verify your email: http://localhost:8000/verify-email?token={user.verification_token}'
+    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email])
