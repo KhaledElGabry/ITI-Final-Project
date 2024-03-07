@@ -8,7 +8,7 @@ import os
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'first_name', 'last_name', 'email', 'password', 'phone', 'usertype', 'address', 'shopname', 'ssn', 'is_superuser','is_active','image','username','imageUrl']
+        fields = ['id', 'first_name', 'last_name', 'email', 'password', 'phone', 'usertype', 'address', 'shopname', 'ssn', 'is_superuser','image','username','imageUrl','is_verified', 'verification_token']
         # not show pass to user
         extra_kwargs = {
             'first_name': {'required': True, 'allow_blank': False, 'min_length': 3, 'max_length': 10},
