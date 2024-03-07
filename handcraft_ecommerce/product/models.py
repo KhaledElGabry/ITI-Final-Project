@@ -15,9 +15,11 @@ class Product(models.Model):
      prodSubCategory = models.ForeignKey('SubCategory', on_delete=models.CASCADE, default=1, verbose_name=('Sub Category Name'),)
      prodOnSale = models.BooleanField(default=False, verbose_name=('On Sale'))
      prodRating = models.FloatField(default=0.0, validators=[MinValueValidator(0.0, "Rating must be at least 0.0"), MaxValueValidator(5.0, "Rating cannot exceed 5.0")], verbose_name=('Rate'))
-     # prodSlug = models.SlugField(blank=True, null=True)
-     prodImageCover = models.ImageField(upload_to='product/', default='static/covers/no-product.png', validators=[FileExtensionValidator(['png','jpg','jpeg'])], verbose_name=('Product Image Cover'))
-     prodImages = models.ManyToManyField('ProductImage', blank=False)
+     # prodCreatedAt = models.DateTimeField(auto_now_add=True, verbose_name=('Created At'))
+     # prodUpdatedAt = models.DateTimeField(auto_now=True, verbose_name=('Updated At'))
+     # prodSlug = models.SlugField(blank=True, null=True, verbose_name=('Slug name'))
+     prodImageThumbnail = models.ImageField(upload_to='product/', default='static/thumbnails/no-product.png', validators=[FileExtensionValidator(['png','jpg','jpeg'])], verbose_name=('Product Image Thumbnail'))
+     prodImages = models.ManyToManyField('ProductImage', blank=True, null=True, verbose_name=('Product Images'))
 
      class Meta:
           verbose_name= ('Product')
@@ -78,8 +80,7 @@ class SubCategory(models.Model):
 #      ordCustomer = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
      # ordTime = models.DateTimeField(auto_now_add=True)
      
-     
-     
+       
      
 # class OrderItems(models.Model):
 #      ordItmOrder = models.ForeignKey(Order,  on_delete=models.CASCADE, null=True)
