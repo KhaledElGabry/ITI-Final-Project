@@ -6,14 +6,14 @@ from account.serializers import UserSerializer
 class CategorySerializer(serializers.ModelSerializer):
      class Meta:
         model = Category
-        fields = '__all__'
+        fields = ['id']
 
 
 
 class SubCategorySerializer(serializers.ModelSerializer):
      class Meta:
         model = SubCategory
-        fields = '__all__'
+        fields = ['id']
 
 
 
