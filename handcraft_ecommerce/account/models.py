@@ -68,3 +68,6 @@ class User(AbstractUser):
     @classmethod
     def userDelete(self,id):
         return self.objects.filter(id=id).delete()
+    
+    def __str__(self):
+          return f"id:{self.id},email:{self.email}"

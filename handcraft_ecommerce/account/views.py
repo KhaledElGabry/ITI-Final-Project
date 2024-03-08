@@ -159,9 +159,12 @@ class UserView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class LogoutView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    
     def post(self, request):
         try:
-            token = CustomToken.objects.get(user=request.user)
+            token = CustomToken.objects.get(user=request.user.id)
             token.delete()
         except CustomToken.DoesNotExist:
             raise AuthenticationFailed({"message":'user is already logged out.'})
