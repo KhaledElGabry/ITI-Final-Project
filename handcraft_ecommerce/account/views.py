@@ -165,16 +165,15 @@ def verify_email(request):
     if token:
         try:
             user = User.objects.get(verification_token=token)
-            user.is_verified = True
+            user.is_active = True
             user.save()
-            return HttpResponse('Email verified successfully!')
+            return HttpResponse('<h1>Email verified successfully!</h1> <a href="http://localhost:3000/login">Go To Login Page</a>')
         except User.DoesNotExist:
             return HttpResponse('Invalid token!')
     else:
         return HttpResponse('Token parameter is missing!')
-    
 
 def send_verification_email(user):
     subject = 'Email Verification'
-    message = f'Click the following link to verify your email: http://localhost:8000/verify-email?token={user.verification_token}'
+    message = f'Click the following link to verify your email: http://localhost:8000/api/verify-email?token={user.verification_token}'
     send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email])
