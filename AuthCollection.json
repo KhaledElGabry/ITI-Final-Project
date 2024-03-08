@@ -26,7 +26,7 @@
 						},
 						{
 							"key": "email",
-							"value": "mohamed11@gmail.com",
+							"value": "mohamed@gmail.com",
 							"type": "text"
 						},
 						{
@@ -59,47 +59,13 @@
 			"response": []
 		},
 		{
-			"name": "Get_All_Users",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{BaseUrl}}allUser/",
-					"host": [
-						"{{BaseUrl}}allUser"
-					],
-					"path": [
-						""
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Delete_All_Users",
-			"request": {
-				"method": "DELETE",
-				"header": [],
-				"url": {
-					"raw": "{{BaseUrl}}allUser/",
-					"host": [
-						"{{BaseUrl}}allUser"
-					],
-					"path": [
-						""
-					]
-				}
-			},
-			"response": []
-		},
-		{
 			"name": "Login",
 			"request": {
 				"method": "POST",
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"email\":\"ali6@gmail.com\",\r\n    \"password\":\"Ali12345\"\r\n}",
+					"raw": "{\r\n    \"email\":\"mohamed@gmail.com\",\r\n    \"password\":\"Mohamed12345\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -119,14 +85,23 @@
 			"response": []
 		},
 		{
-			"name": "User",
+			"name": "Profile",
 			"request": {
+				"auth": {
+					"type": "noauth"
+				},
 				"method": "GET",
-				"header": [],
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Token 940fd415ef56715509902e37ab29cc1abd2670b0",
+						"type": "text"
+					}
+				],
 				"url": {
-					"raw": "{{BaseUrl}}user/",
+					"raw": "{{BaseUrl}}profile/",
 					"host": [
-						"{{BaseUrl}}user"
+						"{{BaseUrl}}profile"
 					],
 					"path": [
 						""
@@ -139,7 +114,17 @@
 			"name": "Logout",
 			"request": {
 				"method": "POST",
-				"header": [],
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Token b597fa852283c3fd2036555b3e409b9e6e9ae008",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": []
+				},
 				"url": {
 					"raw": "{{BaseUrl}}logout/",
 					"host": [
@@ -153,43 +138,32 @@
 			"response": []
 		},
 		{
-			"name": "Delete_User",
-			"request": {
-				"method": "DELETE",
-				"header": [],
-				"url": {
-					"raw": "{{BaseUrl}}6/",
-					"host": [
-						"{{BaseUrl}}6"
-					],
-					"path": [
-						""
-					]
-				}
-			},
-			"response": []
-		},
-		{
 			"name": "Update_User",
 			"request": {
 				"method": "PUT",
-				"header": [],
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Token b597fa852283c3fd2036555b3e409b9e6e9ae008",
+						"type": "text"
+					}
+				],
 				"body": {
 					"mode": "formdata",
 					"formdata": [
 						{
 							"key": "first_name",
-							"value": "salemmm",
+							"value": "salem",
 							"type": "text"
 						},
 						{
 							"key": "last_name",
-							"value": "omara",
+							"value": "Somara",
 							"type": "text"
 						},
 						{
 							"key": "phone",
-							"value": "01001025555",
+							"value": "01001025559",
 							"type": "text"
 						},
 						{
@@ -200,14 +174,88 @@
 						{
 							"key": "image",
 							"type": "file",
-							"src": "/E:/photo/Anime/ace.jpg"
+							"src": "/E:/photo/Anime/819837.png"
+						},
+						{
+							"key": "is_active",
+							"value": "true",
+							"type": "text"
 						}
 					]
 				},
 				"url": {
-					"raw": "{{BaseUrl}}13/",
+					"raw": "{{BaseUrl}}profile/",
 					"host": [
-						"{{BaseUrl}}13"
+						"{{BaseUrl}}profile"
+					],
+					"path": [
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete_User",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Token b597fa852283c3fd2036555b3e409b9e6e9ae008",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{BaseUrl}}profile/",
+					"host": [
+						"{{BaseUrl}}profile"
+					],
+					"path": [
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get_All_Users",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Token 940fd415ef56715509902e37ab29cc1abd2670b0",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{BaseUrl}}allUser/",
+					"host": [
+						"{{BaseUrl}}allUser"
+					],
+					"path": [
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete_All_Users",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Token 52775cab9fd4b56fb4a02024efea5687d5acf45c",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{BaseUrl}}allUser/",
+					"host": [
+						"{{BaseUrl}}allUser"
 					],
 					"path": [
 						""

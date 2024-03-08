@@ -3,6 +3,10 @@ from rest_framework.response import Response
 from rest_framework.exceptions import AuthenticationFailed
 from .serializers import UserSerializer
 from .models import User
+from .models import CustomToken
+from django.shortcuts import get_object_or_404
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 import jwt
 import datetime
 from rest_framework import status
@@ -28,11 +32,7 @@ class RegisterView(APIView):
     def post(self, request):
         serializer = UserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        # print(request.data['first_name'])
-        # print(request.data['image'])
-
         user = serializer.save()
-        
         
         token = generate_verification_token()
         user.verification_token = token
@@ -60,37 +60,63 @@ class LoginView(APIView):
         if not user.is_active:
             raise AuthenticationFailed('Please Active Email First!')
 
-        payload = {
-            'id': user.id,
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(days=1), # expiration 1 day
-            'iat': datetime.datetime.utcnow() # tokenCreatedAt
-        }
-
-        token = jwt.encode(payload, 'secret', algorithm='HS256')
-
         response = Response()
 
-        # response.set_cookie(key='jwt', value=token, httponly=True)
+        token, created = CustomToken.objects.get_or_create(user=user)
+        token.save()
+
         response.data = {
             "message":"success",
-            "token": token,  # Decode here if needed
-            "user": UserSerializer(user).data
+            "token": token.key,
+            "user": UserSerializer(user).data,
         }
         return response
     
 class UserView(APIView):
-    # delete user
-    def delete(self, request, id):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    # get user
+    def get(self, request):
         try:
-            user = User.userDelete(id)
+            user = User.objects.get(id = request.user.id)
+                        
+            # Check if the user's token has expired
+            token = CustomToken.objects.get(user=user)
+            
+            if token.expires and token.is_expired():
+                raise AuthenticationFailed({"data":"expired_token.", "message":'Please login again.'})
+            
+            return Response({'message': UserSerializer(user).data})
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    # delete user
+    def delete(self, request):
+        try:
+            user = User.objects.get(id = request.user.id)
+
+            # Check if the user's token has expired
+            token = CustomToken.objects.get(user=user)
+            if token.expires and token.is_expired():
+                raise AuthenticationFailed({"data":"expired_token.", "message":'Please login again.'})
+            
+            user = User.userDelete(request.user.id)
             return Response({'message': 'User deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
         except User.DoesNotExist:
             return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
     
     # update user
-    def put(self, request, id):
+    def put(self, request):
         try:
+            id = request.user.id
             user = User.objects.get(id=id)
+
+            # Check if the user's token has expired
+            token = CustomToken.objects.get(user=user)
+            if token.expires and token.is_expired():
+                raise AuthenticationFailed({"data":"expired_token.", "message":'Please login again.'})
+            
         except User.DoesNotExist:
             return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -133,32 +159,56 @@ class UserView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class LogoutView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    
     def post(self, request):
-        response = Response()
-        response.delete_cookie('jwt')
-        response.data = {
-            'message': 'Logout success.'
-        }
+        try:
+            token = CustomToken.objects.get(user=request.user.id)
+            token.delete()
+        except CustomToken.DoesNotExist:
+            raise AuthenticationFailed({"message":'user is already logged out.'})
+
+        response = Response({'message': 'Logout success.'}, status=status.HTTP_200_OK)
         return response
 
 class allUsers(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAdminUser & IsAuthenticated]
 
     def get(self,request):
+        # Check if the user's token has expired
+        try:
+            user = get_object_or_404(User, id=request.user.id)
+            token = CustomToken.objects.get(user=user)
+            if token.expires and token.is_expired():
+                raise AuthenticationFailed({"data": "expired_token.", "message": 'Please login again.'})
+        except CustomToken.DoesNotExist:
+            raise AuthenticationFailed({"data": "missing_token", "message": 'Token not found for the user.'})
+
         users=User.usersList()
         dataJSON=UserSerializer(users,many=True).data
         return Response({'Users':dataJSON})
     
-    
-
-    def get(self, request):
-        users = User.usersList()
-        dataJSON = UserSerializer(users, many=True).data
-        return Response({'Users': dataJSON})
-    
     def delete(self, request):
-        print("User.objects.all().delete():  ",User.objects.all().delete())
-        User.objects.all().delete()
-        return Response({'message': 'All users deleted successfully'})
+        # Check if the user's token has expired
+        try:
+            user = get_object_or_404(User, id=request.user.id)
+            token = CustomToken.objects.get(user=user)
+            if token.expires and token.is_expired():
+                raise AuthenticationFailed({"data": "expired_token.", "message": 'Please login again.'})
+        except CustomToken.DoesNotExist:
+            raise AuthenticationFailed({"data": "missing_token", "message": 'Token not found for the user.'})
+
+
+        # Get the admin users
+        admin_users = User.objects.filter(is_superuser=True)
+        # Delete all non-admin users
+        User.objects.exclude(id__in=admin_users.values_list('id', flat=True)).delete()
+
+        return Response({'message': 'Non-admin users deleted successfully'})
+        # User.objects.all().delete()
+        # return Response({'message': 'All users deleted successfully'})
 
 def verify_email(request):
     token = request.GET.get('token')
