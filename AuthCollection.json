@@ -12,13 +12,39 @@
 				"method": "POST",
 				"header": [],
 				"body": {
-					"mode": "raw",
-					"raw": "{\r\n    \"first_name\":\"ali\",\r\n    \"last_name\":\"omara\",\r\n    \"email\":\"ali8@gmail.com\",\r\n    \"password\":\"Ali12345\",\r\n    \"usertype\":\"customer\",\r\n    \"phone\":\"01001025555\"\r\n    \r\n}",
-					"options": {
-						"raw": {
-							"language": "json"
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "first_name",
+							"value": "mohamed",
+							"type": "text"
+						},
+						{
+							"key": "last_name",
+							"value": "omara",
+							"type": "text"
+						},
+						{
+							"key": "email",
+							"value": "mohamed11@gmail.com",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "Mohamed12345",
+							"type": "text"
+						},
+						{
+							"key": "usertype",
+							"value": "customer",
+							"type": "text"
+						},
+						{
+							"key": "phone",
+							"value": "01001025555",
+							"type": "text"
 						}
-					}
+					]
 				},
 				"url": {
 					"raw": "{{BaseUrl}}register/",
@@ -33,9 +59,26 @@
 			"response": []
 		},
 		{
-			"name": "All_Users",
+			"name": "Get_All_Users",
 			"request": {
 				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{BaseUrl}}allUser/",
+					"host": [
+						"{{BaseUrl}}allUser"
+					],
+					"path": [
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete_All_Users",
+			"request": {
+				"method": "DELETE",
 				"header": [],
 				"url": {
 					"raw": "{{BaseUrl}}allUser/",
@@ -115,12 +158,11 @@
 				"method": "DELETE",
 				"header": [],
 				"url": {
-					"raw": "{{BaseUrl}}api/1/",
+					"raw": "{{BaseUrl}}6/",
 					"host": [
-						"{{BaseUrl}}api"
+						"{{BaseUrl}}6"
 					],
 					"path": [
-						"1",
 						""
 					]
 				}
@@ -133,18 +175,39 @@
 				"method": "PUT",
 				"header": [],
 				"body": {
-					"mode": "raw",
-					"raw": "{\r\n    \"first_name\": \"salemmmmm\",\r\n    \"last_name\": \"omara\",\r\n    \"email\": \"ali6@gmail.com\",\r\n    \"password\":\"Ali12345\",\r\n    \"phone\": \"01001025555\",\r\n    \"usertype\": \"customer\",\r\n    \"address\": \"\",\r\n    \"shopname\": \"\",\r\n    \"ssn\": null,\r\n    \"is_superuser\": false\r\n}",
-					"options": {
-						"raw": {
-							"language": "json"
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "first_name",
+							"value": "salemmm",
+							"type": "text"
+						},
+						{
+							"key": "last_name",
+							"value": "omara",
+							"type": "text"
+						},
+						{
+							"key": "phone",
+							"value": "01001025555",
+							"type": "text"
+						},
+						{
+							"key": "address",
+							"value": "Badr City",
+							"type": "text"
+						},
+						{
+							"key": "image",
+							"type": "file",
+							"src": "/E:/photo/Anime/ace.jpg"
 						}
-					}
+					]
 				},
 				"url": {
-					"raw": "{{BaseUrl}}6/",
+					"raw": "{{BaseUrl}}13/",
 					"host": [
-						"{{BaseUrl}}6"
+						"{{BaseUrl}}13"
 					],
 					"path": [
 						""

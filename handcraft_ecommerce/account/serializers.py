@@ -1,11 +1,14 @@
 from rest_framework import serializers
 from .models import User
 import re
+from django.core.files.uploadedfile import TemporaryUploadedFile
+from .app import upload_photo
+import os
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'first_name', 'last_name', 'email', 'password', 'phone', 'usertype', 'address', 'shopname', 'ssn', 'is_superuser']
+        fields = ['id', 'first_name', 'last_name', 'email', 'password', 'phone', 'usertype', 'address', 'shopname', 'ssn', 'is_superuser','image','username','imageUrl','is_active']
         # not show pass to user
         extra_kwargs = {
             'first_name': {'required': True, 'allow_blank': False, 'min_length': 3, 'max_length': 10},
@@ -20,13 +23,23 @@ class UserSerializer(serializers.ModelSerializer):
         instance = self.Meta.model(**validated_data)
         if password is not None:
             instance.set_password(password)
+
         instance.save()
         return instance
-
+    
+    # update first name , last , phone , address , 
     def update(self, instance, validated_data):
-        password = validated_data.get('password')
-        if password is not None:
-            instance.set_password(password)
+        instance.first_name=validated_data['first_name']
+        instance.last_name=validated_data['last_name']
+        # instance.email=validated_data['email']
+        # password = validated_data.get('password')
+        # if password is not None:
+        #     instance.set_password(password)
+        instance.phone=validated_data['phone']
+        # instance.ssn=validated_data['ssn']
+        instance.address=validated_data['address']
+        if 'image' in validated_data and validated_data['image'] is not None:
+            instance.image=validated_data['image']
 
         instance.save()
         return instance

@@ -3,10 +3,13 @@ from rest_framework.response import Response
 from rest_framework.exceptions import AuthenticationFailed
 from .serializers import UserSerializer
 from .models import User
-import jwt, datetime
+import jwt
+import datetime
 from rest_framework import status
-
-
+from .app import upload_photo,delete_photos
+import os
+from urllib.parse import unquote
+from django.http import HttpResponse
 from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
@@ -16,29 +19,30 @@ from django.utils.encoding import force_bytes
 from django.urls import reverse
 from .tokens import account_activation_token  # You need to create this token generator
 from django.core.mail import EmailMessage
+
+from .utils import generate_verification_token
+from django.utils.http import urlsafe_base64_decode
+
+
 class RegisterView(APIView):
     def post(self, request):
         serializer = UserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        # print(request.data['first_name'])
+        # print(request.data['image'])
+
         user = serializer.save()
+        
+        
+        token = generate_verification_token()
+        user.verification_token = token
+        user.save()
 
         # Send verification email
-        self.send_verification_email(request, user)
+        send_verification_email(user)
 
         return Response({"message": "success"})
 
-    def send_verification_email(self, request, user):
-        current_site = get_current_site(request)
-        subject = 'Activate Your Account'
-        domain = request.get_host()  # Get the domain from the request
-        verification_link = f'http://{domain}/activate/?uid={urlsafe_base64_encode(force_bytes(user.pk))}&token={account_activation_token.make_token(user)}'
-        message = f'Hello {user.username},\n\nPlease click on the following link to activate your account:\n{verification_link}'
-        email = EmailMessage(
-            subject=subject,
-            body=message,
-            to=[user.email],
-        )
-        email.send()
 
 class LoginView(APIView):
     def post(self, request):
@@ -52,6 +56,9 @@ class LoginView(APIView):
 
         if not user.check_password(password):
             raise AuthenticationFailed('Incorrect password!')
+
+        if not user.is_active:
+            raise AuthenticationFailed('Please Active Email First!')
 
         payload = {
             'id': user.id,
@@ -87,28 +94,43 @@ class UserView(APIView):
         except User.DoesNotExist:
             return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        serializer = UserSerializer(user, data=request.data)
+        serializer = UserSerializer(user, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data)
+
+            # if user send new image
+            if 'image' in request.data and request.data['image'] is not None:
+                
+                # if user has already image on drive
+                if serializer.validated_data.get('image') is not None:
+                    delete_photos(f"{id}.png")
+                           
+                # upload new image
+                media_folder = os.path.join(os.getcwd(), "media/users/images")
+                # save new url
+                Url_Image = upload_photo(os.path.join(media_folder, os.path.basename(serializer['image'].value)),f"{id}.png")
+                user.imageUrl = Url_Image
+                user.save()
+                
+                # remove image from server
+                if os.path.exists(media_folder):
+                    for file_name in os.listdir(media_folder):
+                        file_path = os.path.join(media_folder, file_name)
+                        try:
+                            if os.path.isfile(file_path):
+                                os.remove(file_path)
+                                print(f"Deleted: {file_path}")
+                            else:
+                                print(f"Skipped: {file_path} (not a file)")
+                        except Exception as e:
+                            print(f"Error deleting {file_path}: {e}")
+                else:
+                    print("Folder does not exist.")
+
+            user = User.objects.get(id=id)
+            serializer = UserSerializer(user)
+            return Response({'message': 'Data Updated Successfully', "user":serializer.data})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-# class UserView(APIView):
-
-#     def get(self, request):
-#         token = request.COOKIES.get('jwt')
-
-#         if not token:
-#             raise AuthenticationFailed('Unauthenticated!')
-
-#         try:
-#             payload = jwt.decode(token, 'secret', algorithms=['HS256'])
-#         except jwt.ExpiredSignatureError:
-#             raise AuthenticationFailed('Unauthenticated!')
-
-#         user = User.objects.filter(id=payload['id']).first()
-#         serializer = UserSerializer(user)
-#         return Response(serializer.data)
 
 class LogoutView(APIView):
     def post(self, request):
@@ -120,9 +142,38 @@ class LogoutView(APIView):
         return response
 
 class allUsers(APIView):
+
     def get(self,request):
         users=User.usersList()
         dataJSON=UserSerializer(users,many=True).data
         return Response({'Users':dataJSON})
     
     
+
+    def get(self, request):
+        users = User.usersList()
+        dataJSON = UserSerializer(users, many=True).data
+        return Response({'Users': dataJSON})
+    
+    def delete(self, request):
+        print("User.objects.all().delete():  ",User.objects.all().delete())
+        User.objects.all().delete()
+        return Response({'message': 'All users deleted successfully'})
+
+def verify_email(request):
+    token = request.GET.get('token')
+    if token:
+        try:
+            user = User.objects.get(verification_token=token)
+            user.is_active = True
+            user.save()
+            return HttpResponse('<h1>Email verified successfully!</h1> <a href="http://localhost:3000/login">Go To Login Page</a>')
+        except User.DoesNotExist:
+            return HttpResponse('Invalid token!')
+    else:
+        return HttpResponse('Token parameter is missing!')
+
+def send_verification_email(user):
+    subject = 'Email Verification'
+    message = f'Click the following link to verify your email: http://localhost:8000/api/verify-email?token={user.verification_token}'
+    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email])
