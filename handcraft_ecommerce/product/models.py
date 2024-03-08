@@ -4,7 +4,6 @@ from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator, FileExtensionValidator
 from account.models import User
 
-
 class Product(models.Model):
      prodVendor = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
      prodName = models.CharField(max_length=100, verbose_name=('Product Title'))
@@ -18,6 +17,8 @@ class Product(models.Model):
      # prodSlug = models.SlugField(blank=True, null=True)
      prodImageCover = models.ImageField(upload_to='product/', default='static/covers/no-product.png', validators=[FileExtensionValidator(['png','jpg','jpeg'])], verbose_name=('Product Image Cover'))
      prodImages = models.ManyToManyField('ProductImage', blank=False)
+
+     favorite=models.ManyToManyField(User,related_name="Favorit")
 
      class Meta:
           verbose_name= ('Product')
