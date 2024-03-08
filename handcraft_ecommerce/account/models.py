@@ -2,6 +2,19 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.core.validators import MinLengthValidator, MaxLengthValidator, RegexValidator
 from django.contrib.auth.models import BaseUserManager
+from django.utils import timezone
+from datetime import timedelta
+from rest_framework.authtoken.models import Token
+class CustomToken(Token):
+    expires = models.DateTimeField(null=False, blank=False)
+
+    def save(self, *args, **kwargs):
+        # Set expiration time to 1 minute from now
+        self.expires = timezone.now() + timedelta(minutes=1)
+        super().save(*args, **kwargs)
+
+    def is_expired(self):
+        return self.expires and self.expires < timezone.now()
 
 
 class CustomUserManager(BaseUserManager):

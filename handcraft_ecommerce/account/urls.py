@@ -8,6 +8,6 @@ urlpatterns = [
         path('logout/', LogoutView.as_view()),
         path('allUser/', allUsers.as_view()),
         # delete & update based on method type delete/put
-        path('<int:id>/', UserView.as_view()),
+        path('profile/', UserView.as_view()),
         path('verify-email/', verify_email, name='verify_email')
 ]
