@@ -1,4 +1,3 @@
-
 from .models import Product, Category, SubCategory
 from account.models import User
 from .serializers import ProductSerializer, CategorySerializer, SubCategorySerializer
@@ -49,7 +48,7 @@ def productDetailsApi(request, id):
 
 # List all Products belonging to the specified Vendor
 @api_view(['GET'])
-@permission_classes([permissions.IsAuthenticated])
+# @permission_classes([permissions.IsAuthenticated])
 def productVendorApi(request, id):
     vendor = get_object_or_404(User, id=id, usertype='vendor')
     vendorProducts = Product.objects.filter(prodVendor=vendor)
@@ -70,33 +69,40 @@ def productVendorApi(request, id):
 
 
 
-@api_view(['GET','POST'])
-@authentication_classes([TokenAuthentication])
-@permission_classes([AllowAny])
+@api_view(['POST'])
+# @authentication_classes([TokenAuthentication])
+# @permission_classes([AllowAny])
 def productCreateVendorApi(request):
 
-    token = request.headers.get('userToken')  
-    if not token:
-        return Response({'error': 'Token not provided'}, status=status.HTTP_400_BAD_REQUEST)
+    # token = request.headers.get('userToken')  
+    # if not token:
+    #     return Response({'error': 'Token not provided'}, status=status.HTTP_400_BAD_REQUEST)
 
-    try:
-        payload = jwt.decode(token, 'your_secret_key', algorithms=['HS256'])
-        userID = payload.get('id')
-        user = User.objects.get(id=userID)
-    except jwt.ExpiredSignatureError:
-        return Response({'error': 'Token has expired'}, status=status.HTTP_401_UNAUTHORIZED)
-    except jwt.InvalidTokenError:
-        return Response({'error': 'Invalid token'}, status=status.HTTP_401_UNAUTHORIZED)
-    except User.DoesNotExist:
-        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+    # try:
+    #     payload = jwt.decode(token, 'secret', algorithms=['HS256'])
+    #     userID = payload.get('id')
+    #     user = User.objects.get(id=userID)
+    #     print("user",user)
+    #     print("userID",userID)
+
+    # except jwt.ExpiredSignatureError:
+    #     return Response({'error': 'Token has expired'}, status=status.HTTP_401_UNAUTHORIZED)
+    # except jwt.InvalidTokenError:
+    #     return Response({'error': 'Invalid token'}, status=status.HTTP_401_UNAUTHORIZED)
+    # except User.DoesNotExist:
+    #     return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
     # if user.usertype == 'vendor' and user.is_active:
     
-    products = Product.objects.create()
-    data = request.data
-    serializer = ProductSerializer(products=request.data)
-    serializer.save(prodVendor=user)
-    return Response(serializer.data, status=status.HTTP_201_CREATED)
+    # products = Product.objects.create()
+    # data = request.data
+
+
+    serializer = ProductSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    product = serializer.save()
+    serializer = ProductSerializer(product)
+    return Response({"product" : serializer.data}, status=status.HTTP_201_CREATED)
     # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -104,33 +110,25 @@ def productCreateVendorApi(request):
 
 
 
-
-
-
-
 @api_view(['PUT', 'DELETE'])
-@permission_classes([permissions.IsAuthenticated])
+# @authentication_classes([TokenAuthentication])
+# @permission_classes([IsAuthenticated])
 def productUpdateDeleteApi(request, id):
-    try:
-        isProdExist = Product.objects.get(id=id)
-    except Product.DoesNotExist:
-        return Response({'error': 'Product not found'}, status=status.HTTP_404_NOT_FOUND)
+    product = get_object_or_404(Product, id=id)
 
-    # Check if the authenticated user is the owner of the product
-    if request.user != isProdExist.prodVendor:
-        return Response({'error': 'You do not have permission to update/delete this product'}, status=status.HTTP_403_FORBIDDEN)
+    # if request.user != product.prodVendor:
+    #     return Response({'error': 'You do not have permission to update/delete this product'}, status=status.HTTP_403_FORBIDDEN)
 
     if request.method == 'PUT':
         # PUT: Update the existing product belonging to the authenticated vendor
-        serializer = ProductSerializer(isProdExist, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer = ProductSerializer(product, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({"product": serializer.data}, status=status.HTTP_200_OK)
 
     elif request.method == 'DELETE':
         # DELETE: Delete the existing product belonging to the authenticated vendor
-        isProdExist.delete()
+        product.delete()
         return Response({'message': 'Product deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
 
 
@@ -143,7 +141,7 @@ def productUpdateDeleteApi(request, id):
 class ProductCreate(CreateAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer  # Corrected attribute name
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):  # Corrected method name
         # Set the product's vendor to the authenticated user
