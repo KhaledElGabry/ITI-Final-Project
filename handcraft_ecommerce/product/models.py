@@ -18,7 +18,8 @@ class Product(models.Model):
      # prodCreatedAt = models.DateTimeField(auto_now_add=True, verbose_name=('Created At'))
      # prodUpdatedAt = models.DateTimeField(auto_now=True, verbose_name=('Updated At'))
      # prodSlug = models.SlugField(blank=True, null=True, verbose_name=('Slug name'))
-     prodImageThumbnail = models.ImageField(upload_to='product/', default='thumbnails/no-product.png', validators=[FileExtensionValidator(['png','jpg','jpeg'])], verbose_name=('Image Thumbnail'))
+     prodImageThumbnail = models.ImageField(upload_to='product/', default='thumbnails/no-product.png', validators=[FileExtensionValidator(['png','jpg','jpeg'])], verbose_name=('Image Thumbnail'),null=True)
+     imageUrl = models.URLField(null=True)
      # prodImages = models.ManyToManyField('ProductImage', blank=True, verbose_name=('Product Images'))
 
      class Meta:

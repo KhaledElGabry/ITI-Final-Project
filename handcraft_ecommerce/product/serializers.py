@@ -67,7 +67,6 @@ class ProductSerializer(serializers.ModelSerializer):
          # print(prod_sub_category_id)
          product.prodSubCategory=validated_data['prodSubCategory']
          product.prodOnSale=validated_data['prodOnSale']
-         product.prodImageThumbnail=validated_data['prodImageThumbnail']
          # product.prodImages=validated_data['prodImages']
 
 

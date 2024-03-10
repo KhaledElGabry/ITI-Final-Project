@@ -16,7 +16,8 @@ from rest_framework.permissions import AllowAny
 import jwt
 from account.models import CustomToken
 from rest_framework.exceptions import AuthenticationFailed
-
+from account.app import upload_photo,delete_photos
+import os
 
 
 # All Products List and Details 
@@ -106,11 +107,41 @@ def productCreateVendorApi(request):
     serializer.is_valid(raise_exception=True)
     product = serializer.save()
     product.prodVendor=request.user
-    product.save()
-    print("serializer.data ",serializer['prodName'].value)
-    serializer = ProductSerializer(product)
-    return Response({"product" : serializer.data}, status=status.HTTP_201_CREATED)
-    # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    if serializer.is_valid():
+        prod = ProductSerializer(product)
+        # if user send new image
+        if 'prodImageThumbnail' in request.data and request.data['prodImageThumbnail'] is not None:
+                # if user has already image on drive
+                if serializer.validated_data.get('prodImageThumbnail') is not None:
+                    delete_photos(f"{product.id}.png", "1bzm8Xuenx4NVyxmJUTV6n5mpmbFrVqg1")
+                           
+                # upload new image
+                media_folder = os.path.join(os.getcwd(), "media/product")
+                # save new url
+                Url_Image = upload_photo(os.path.join(media_folder, os.path.basename(serializer['prodImageThumbnail'].value)),f"{product.id}.png", "1bzm8Xuenx4NVyxmJUTV6n5mpmbFrVqg1")
+                product.imageUrl = Url_Image
+                product.save()
+                
+                # remove image from server
+                if os.path.exists(media_folder):
+                    for file_name in os.listdir(media_folder):
+                        file_path = os.path.join(media_folder, file_name)
+                        try:
+                            if os.path.isfile(file_path):
+                                os.remove(file_path)
+                                print(f"Deleted: {file_path}")
+                            else:
+                                print(f"Skipped: {file_path} (not a file)")
+                        except Exception as e:
+                            print(f"Error deleting {file_path}: {e}")
+                else:
+                    print("Folder does not exist.")
+
+
+        return Response({"product" : prod.data}, status=status.HTTP_201_CREATED)
+    
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 
