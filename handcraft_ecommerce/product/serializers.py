@@ -67,7 +67,6 @@ class ProductSerializer(serializers.ModelSerializer):
          # print(prod_sub_category_id)
          product.prodSubCategory=validated_data['prodSubCategory']
          product.prodOnSale=validated_data['prodOnSale']
-         product.prodImageThumbnail=validated_data['prodImageThumbnail']
          # product.prodImages=validated_data['prodImages']
 
 
@@ -96,30 +95,6 @@ class ProductSerializer(serializers.ModelSerializer):
 
 
 
-   
-
-
-
-
-      # prod_sub_category_data = validated_data.pop('prodSubCategory_data', None)
-      # if prod_sub_category_data:
-      #       prod_sub_category, _ = SubCategory.objects.get_or_create(**prod_sub_category_data)
-      # elif prod_sub_category_id:
-      #       prod_sub_category = SubCategory.objects.get(id=prod_sub_category_id)
-      # else:
-      #       prod_sub_category = None
-
-      #   # Create the Product instance
-      # product = Product.objects.create(**validated_data)
-
-      #   # Set the prodSubCategory if available
-      # if prod_sub_category:
-      #       product.prodSubCategory = prod_sub_category
-      #       product.save()
-
-      # return product
-
-
 class PaginatedProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
@@ -129,24 +104,3 @@ class PaginatedProductSerializer(serializers.ModelSerializer):
 
       
      
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      # product.prodRating=validated_data.get('rating', 0.0)
-      # prodSlug

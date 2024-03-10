@@ -15,13 +15,13 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 SERVICE_ACCOUNT_FILE = os.path.join(script_dir, "file.json")
 
 
-PARENT_FOLDER_ID="1MhL0rLJd8lvlfC5nwumvERvogXRVKam5"
+# PARENT_FOLDER_ID="1MhL0rLJd8lvlfC5nwumvERvogXRVKam5"
 
 def authenticate():
     creds = service_account.Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
     return creds
 
-def upload_photo(file_path, file_name):
+def upload_photo(file_path, file_name, PARENT_FOLDER_ID):
     creds = authenticate()
     service = build('drive', 'v3', credentials=creds)
 
@@ -40,12 +40,12 @@ def upload_photo(file_path, file_name):
     file_id = file['id']
 
     # Get the URL of the uploaded file
-    file_url = f"https://drive.google.com/uc?id={file_id}"
+    file_url = f"https://drive.google.com/thumbnail?id={file_id}"
 
     return file_url
     
 
-def delete_photos(file_name):
+def delete_photos(file_name, PARENT_FOLDER_ID):
     creds = authenticate()
     service = build('drive', 'v3', credentials=creds)
 
