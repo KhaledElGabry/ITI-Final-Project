@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Product, ProductImage, Category, SubCategory
+from .models import Product, ProductImage, Category, SubCategory , Rating
 
 admin.site.register(ProductImage)
 
@@ -25,4 +25,9 @@ class SubCategoryAdmin(admin.ModelAdmin):
     list_editable=['subCateParent','subCateDescription']
     search_fields=['subCateName']
 admin.site.register(SubCategory,SubCategoryAdmin)
+
+class RatingAdmin(admin.ModelAdmin):
+    list_display=['product','user','rating']
+    search_fields=['product']
+admin.site.register(Rating,RatingAdmin)
 

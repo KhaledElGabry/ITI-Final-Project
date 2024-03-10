@@ -1,6 +1,21 @@
-from django.urls import path
+from django.urls import path , include
 from . import views 
+from rest_framework import routers
 
+
+router=routers.DefaultRouter()
+router.register('search',
+                views.productserializer,
+                basename='search-product')
+
+
+router.register('rating',
+                views.Ratingserlizer,
+                basename='Rating')
+
+router.register('favorite',
+                views.Favorite,
+                basename='Favorite')
 
 urlpatterns = [
 
@@ -23,5 +38,7 @@ urlpatterns = [
      path('subcategory/', views.subCategoryListApi, name='subCategoryListApi'),
      path('subcategory/<int:id>', views.subCategoryDetailsApi, name='subCategoryDetailsApi'),
 
-
+     # all product url for search bar
+     path('',include(router.urls)),
 ]
+app_name='products'

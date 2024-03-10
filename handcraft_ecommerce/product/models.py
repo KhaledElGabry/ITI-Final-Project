@@ -3,6 +3,7 @@ from tkinter import CASCADE
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator, FileExtensionValidator
 from account.models import User
+from datetime import datetime
 
 class Product(models.Model):
      prodVendor = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
@@ -32,7 +33,17 @@ class Product(models.Model):
      def __str__(self):
           return self.prodName
      
-
+ #------------------------------------------------------------------ Rating -------------------------------------
+class Rating(models.Model):
+    product=models.ForeignKey(Product, on_delete=models.CASCADE)        
+    user=models.ForeignKey(User, on_delete=models.CASCADE)
+    
+    rating=models.FloatField(default=0.0)        
+    subject=models.CharField(max_length=2000)        
+    review=models.TextField(max_length=2000,blank=True)        
+    createdDate=models.DateTimeField(default=datetime.now)    
+     
+#---------------------------------------------------------------------------------------------------------
 class ProductImage(models.Model):
      # prodImageProduct = models.ForeignKey(Product, on_delete=models.CASCADE, verbose_name=('Product'))
      prodImage = models.ImageField(upload_to='product/', validators=[FileExtensionValidator(['png','jpg','jpeg'])], verbose_name=('Product Image'))

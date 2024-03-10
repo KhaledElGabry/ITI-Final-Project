@@ -1,5 +1,5 @@
 
-from .models import Product, Category, SubCategory
+from .models import Product, Category, SubCategory , Rating
 from account.models import User
 from .serializers import ProductSerializer, CategorySerializer, SubCategorySerializer
 from rest_framework.response import Response
@@ -11,7 +11,11 @@ from django.shortcuts import get_object_or_404
 from rest_framework import status
 
 
-
+from functools import reduce
+import operator
+from django.db.models import Q
+from rest_framework import viewsets , mixins
+from .serializers import ProductSearchSerializer , Ratingserializer , Productserializer
 # All Products List and Details 
 
 @api_view(['GET'])
@@ -117,3 +121,56 @@ def subCategoryDetailsApi(request, id):
      subCategoriesDetails = SubCategory.objects.get(id=id)
      data = SubCategorySerializer(subCategoriesDetails).data
      return Response({'data':data})
+
+#================================ API for search =================================================================
+class productserializer(viewsets.GenericViewSet, mixins.ListModelMixin):
+    queryset=Product.objects.all()
+    serializer_class = ProductSearchSerializer
+
+    def get_queryset(self):
+        text=self.request.query_params.get('query',None)
+        if not text:
+            return self.queryset
+        
+        text_seq=text.split(' ')
+        text_qs=reduce(operator.and_,
+                       (Q(prodName__icontains=x)for x in text_seq))
+        
+
+        return self.queryset.filter(text_qs)
+        # return self.queryset.filter(name__icontains=text)
+#================================ API for rating =================================================================
+class Ratingserlizer(viewsets.GenericViewSet, mixins.ListModelMixin):
+    queryset=Rating.objects.all()
+    serializer_class = Ratingserializer
+
+    def get_queryset(self):
+        text=self.request.query_params.get('query',None)
+        if not text:
+            return self.queryset
+        
+        text_seq=text.split(' ')
+        text_qs=reduce(operator.and_,
+                       (Q(product__icontains=x)for x in text_seq))
+        
+
+        return self.queryset.filter(text_qs)
+        # return self.queryset.filter(name__icontains=text)      
+#================================ API for favorite =================================================================
+
+class Favorite(viewsets.GenericViewSet, mixins.ListModelMixin):
+    queryset=Product.objects.all()
+    serializer_class = Productserializer
+
+    def get_queryset(self):
+        text=self.request.query_params.get('query',None)
+        if not text:
+            return self.queryset
+        
+        text_seq=text.split(' ')
+        text_qs=reduce(operator.and_,
+                       (Q(prodName__icontains=x)for x in text_seq))
+        
+
+        return self.queryset.filter(text_qs)
+        # return self.queryset.filter(name__icontains=text)

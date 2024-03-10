@@ -59,10 +59,8 @@ class User(AbstractUser):
     address = models.CharField(max_length=100, blank=True)
     shopname = models.CharField(max_length=100, blank=True)
     ssn = models.CharField(max_length=14, validators=[RegexValidator(regex='^[0-9]{14}$', message='SSN must be 14 numeric digits', code='invalid_ssn')], unique=True, null=True)
-<<<<<<< HEAD
     objects = CustomUserManager()
     # rate = models.IntegerField(blank=True , default=0)
-=======
     image = models.ImageField(upload_to='users/images/',null=True)
     imageUrl = models.URLField(null=True)
     verification_token = models.CharField(max_length=100, blank=True, null=True)
@@ -70,7 +68,6 @@ class User(AbstractUser):
     
     
     objects = CustomUserManager()
->>>>>>> main
     REQUIRED_FIELDS = ['first_name', 'last_name']
 
     @classmethod
