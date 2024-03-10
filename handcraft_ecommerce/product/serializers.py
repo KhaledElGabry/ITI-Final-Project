@@ -47,6 +47,9 @@ class ProductSerializer(serializers.ModelSerializer):
          model = Product
          fields = '__all__'
 
+         
+
+
          # prodVendor = UserSerializer()
          # prodCategory = CategorySerializer()
          # prodSubCategory = SubCategorySerializer()
@@ -55,7 +58,7 @@ class ProductSerializer(serializers.ModelSerializer):
       def create(self, validated_data):
      
          product=Product()
-         product.prodVendor=validated_data['prodVendor']
+         # product.prodVendor=self.request.user
          product.prodName=validated_data['prodName']
          product.prodPrice=validated_data['prodPrice']
          product.prodDescription=validated_data['prodDescription']
@@ -75,7 +78,6 @@ class ProductSerializer(serializers.ModelSerializer):
       
 
       def update(self, instance, validated_data):
-        instance.prodVendor = validated_data.get('prodVendor', instance.prodVendor)
         instance.prodName = validated_data.get('prodName', instance.prodName)
         instance.prodPrice = validated_data.get('prodPrice', instance.prodPrice)
         instance.prodDescription = validated_data.get('prodDescription', instance.prodDescription)

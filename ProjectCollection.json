@@ -1,0 +1,603 @@
+{
+	"info": {
+		"_postman_id": "01b7ff39-4692-4c10-8039-be0e63b51c19",
+		"name": "FinalProjectDjango",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "19909125"
+	},
+	"item": [
+		{
+			"name": "User",
+			"item": [
+				{
+					"name": "Register",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "first_name",
+									"value": "mohamed",
+									"type": "text"
+								},
+								{
+									"key": "last_name",
+									"value": "omara",
+									"type": "text"
+								},
+								{
+									"key": "email",
+									"value": "mohamed@gmail.com",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "Mohamed12345",
+									"type": "text"
+								},
+								{
+									"key": "usertype",
+									"value": "vendor",
+									"type": "text"
+								},
+								{
+									"key": "phone",
+									"value": "01001025555",
+									"type": "text"
+								},
+								{
+									"key": "ssn",
+									"value": "12345678912342",
+									"type": "text"
+								},
+								{
+									"key": "shopname",
+									"value": "My Shop",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{BaseUrl}}register/",
+							"host": [
+								"{{BaseUrl}}register"
+							],
+							"path": [
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\":\"mohamed@gmail.com\",\r\n    \"password\":\"Mohamed12345\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BaseUrl}}login/",
+							"host": [
+								"{{BaseUrl}}login"
+							],
+							"path": [
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Profile",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token 940fd415ef56715509902e37ab29cc1abd2670b0",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{BaseUrl}}profile/",
+							"host": [
+								"{{BaseUrl}}profile"
+							],
+							"path": [
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token b597fa852283c3fd2036555b3e409b9e6e9ae008",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": []
+						},
+						"url": {
+							"raw": "{{BaseUrl}}logout/",
+							"host": [
+								"{{BaseUrl}}logout"
+							],
+							"path": [
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update_User",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token b597fa852283c3fd2036555b3e409b9e6e9ae008",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "first_name",
+									"value": "salem",
+									"type": "text"
+								},
+								{
+									"key": "last_name",
+									"value": "Somara",
+									"type": "text"
+								},
+								{
+									"key": "phone",
+									"value": "01001025559",
+									"type": "text"
+								},
+								{
+									"key": "address",
+									"value": "Badr City",
+									"type": "text"
+								},
+								{
+									"key": "image",
+									"type": "file",
+									"src": "/E:/photo/Anime/819837.png"
+								},
+								{
+									"key": "is_active",
+									"value": "true",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{BaseUrl}}profile/",
+							"host": [
+								"{{BaseUrl}}profile"
+							],
+							"path": [
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete_User",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token b597fa852283c3fd2036555b3e409b9e6e9ae008",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{BaseUrl}}profile/",
+							"host": [
+								"{{BaseUrl}}profile"
+							],
+							"path": [
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get_All_Users",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token 940fd415ef56715509902e37ab29cc1abd2670b0",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{BaseUrl}}allUser/",
+							"host": [
+								"{{BaseUrl}}allUser"
+							],
+							"path": [
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete_All_Users",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token 52775cab9fd4b56fb4a02024efea5687d5acf45c",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{BaseUrl}}allUser/",
+							"host": [
+								"{{BaseUrl}}allUser"
+							],
+							"path": [
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Product",
+			"item": [
+				{
+					"name": "All_Products",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token 0d2baf8685cf49e7d21ae1989e04d504a56b7aa6",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{BaseUrl}}product/",
+							"host": [
+								"{{BaseUrl}}product"
+							],
+							"path": [
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Product_Details",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token 4acd6ea21fd518db0cf20dd4aedbecd919dc9034",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{BaseUrl}}product/details/1/",
+							"host": [
+								"{{BaseUrl}}product"
+							],
+							"path": [
+								"details",
+								"1",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Vendor_Products",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token 1e62ff7f13071a4ca7017f45a15f3aa1cfc17378",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{BaseUrl}}product/vendor/",
+							"host": [
+								"{{BaseUrl}}product"
+							],
+							"path": [
+								"vendor",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create_Product",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token 4acd6ea21fd518db0cf20dd4aedbecd919dc9034",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "prodName",
+									"value": "drdtfv",
+									"type": "text"
+								},
+								{
+									"key": "prodPrice",
+									"value": "500.00",
+									"type": "text"
+								},
+								{
+									"key": "prodDescription",
+									"value": "hhygbj",
+									"type": "text"
+								},
+								{
+									"key": "prodSubCategory",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "prodOnSale",
+									"value": "true",
+									"type": "text"
+								},
+								{
+									"key": "prodImageThumbnail",
+									"type": "file",
+									"src": "/E:/photo/Anime/273995.jpg"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{BaseUrl}}product/create/",
+							"host": [
+								"{{BaseUrl}}product"
+							],
+							"path": [
+								"create",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update_Product",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token 0d2baf8685cf49e7d21ae1989e04d504a56b7aa6",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "prodName",
+									"value": "pro1",
+									"type": "text"
+								},
+								{
+									"key": "prodPrice",
+									"value": "555.00",
+									"type": "text"
+								},
+								{
+									"key": "prodDescription",
+									"value": "pro1",
+									"type": "text"
+								},
+								{
+									"key": "prodSubCategory",
+									"value": "3",
+									"type": "text"
+								},
+								{
+									"key": "prodOnSale",
+									"value": "false",
+									"type": "text"
+								},
+								{
+									"key": "prodImageThumbnail",
+									"type": "file",
+									"src": "/E:/photo/Anime/273995.jpg"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{BaseUrl}}product/18/",
+							"host": [
+								"{{BaseUrl}}product"
+							],
+							"path": [
+								"18",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete_Product",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token 0d2baf8685cf49e7d21ae1989e04d504a56b7aa6",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{BaseUrl}}product/16/",
+							"host": [
+								"{{BaseUrl}}product"
+							],
+							"path": [
+								"16",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "All_Main_Categories",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BaseUrl}}product/category/",
+							"host": [
+								"{{BaseUrl}}product"
+							],
+							"path": [
+								"category",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Main_Category_Details",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BaseUrl}}product/category/2/",
+							"host": [
+								"{{BaseUrl}}product"
+							],
+							"path": [
+								"category",
+								"2",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "All_Sub_Categories",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BaseUrl}}product/subcategory/",
+							"host": [
+								"{{BaseUrl}}product"
+							],
+							"path": [
+								"subcategory",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Sub_Category_Details",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BaseUrl}}product/subcategory/4/",
+							"host": [
+								"{{BaseUrl}}product"
+							],
+							"path": [
+								"subcategory",
+								"4",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "BaseUrl",
+			"value": "http://localhost:8000/api/",
+			"type": "string"
+		}
+	]
+}
