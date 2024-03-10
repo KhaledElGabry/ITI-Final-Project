@@ -16,21 +16,101 @@ from rest_framework.permissions import AllowAny
 import jwt
 from account.models import CustomToken
 from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.pagination import PageNumberPagination
+from .serializers import PaginatedProductSerializer
 
+class CustomPagination(PageNumberPagination):
+    page_size = 100
+    page_size_query_param = 'page_size'
+    max_page_size = 1000
+    
+    def get_page_size(self, request):
+        # Adjust the page size if specified in the query parameters
+        if self.page_size_query_param:
+            try:
+                page_size = int(request.query_params[self.page_size_query_param])
+                if page_size > 0:
+                    return page_size
+            except (KeyError, ValueError):
+                pass
 
+        return self.page_size
 
+    def paginate_queryset(self, queryset, request, view=None):
+        # Get the page size and number from query parameters
+        self.page_size = self.get_page_size(request)
+        self.page_number = request.query_params.get(self.page_query_param, 1)
+
+        # Calculate the offset based on page size and number
+        if self.page_number == 'last':
+            self.page_number = self.page.paginator.num_pages
+        try:
+            self.page_number = max(int(self.page_number), 1)
+        except (TypeError, ValueError):
+            self.page_number = 1
+
+        # Skip records based on offset
+        self.offset = (self.page_number - 1) * self.page_size
+        
+        self.request = request
+        if not self.page_size:
+            return None
+
+        # Perform pagination
+        queryset = super().paginate_queryset(queryset, request, view)
+        if not queryset:
+            return None
+
+        return list(queryset)
 # All Products List and Details 
+
 
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([permissions.IsAuthenticated])
 def productListApi(request):
-     token = CustomToken.objects.get(user=request.user)
-     if token.expires and token.is_expired():
-            raise AuthenticationFailed({"data":"expired_token.", "message":'Please login again.'})
-     products = Product.objects.all()
-     data = ProductSerializer(products, many=True).data
-     return Response({'data':data})
+    token = CustomToken.objects.get(user=request.user)
+    if token.expires and token.is_expired():
+        raise AuthenticationFailed({"data": "expired_token.", "message": 'Please login again.'})
+    
+    paginator = CustomPagination()
+    products = Product.objects.all()
+    
+    # Apply limit and skip if provided in query parameters
+    limit = request.query_params.get('limit')
+    skip = request.query_params.get('skip')
+    
+    if limit is not None:
+        try:
+            limit = int(limit)
+            if limit < 0:
+                limit = 0
+        except ValueError:
+            limit = None
+    
+    if skip is not None:
+        try:
+            skip = int(skip)
+            if skip < 0:
+                skip = 0
+        except ValueError:
+            skip = None
+    
+    if limit is not None and skip is not None:
+        products = products[skip:skip+limit]
+    elif limit is not None:
+        products = products[:limit]
+    elif skip is not None:
+        products = products[skip:]
+    
+    # Paginate the products
+    paginated_products = paginator.paginate_queryset(products, request)
+    
+    # Serialize paginated products
+    serializer = ProductSerializer(paginated_products, many=True)
+    
+    # Return paginated response
+    return paginator.get_paginated_response(serializer.data)
 
 
 @api_view(['GET'])
