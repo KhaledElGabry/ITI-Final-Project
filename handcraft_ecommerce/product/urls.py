@@ -6,11 +6,12 @@ urlpatterns = [
 
 
 
-     # product list & details API's (FunctionBasedView)
+     # Product list & details API's 
      path('', views.productListApi, name='productListApi'),
      path('details/<int:id>/', views.productDetailsApi, name='productDetailsApi'),
 
-     # vendor API's (FunctionBasedView)
+
+     # Vendor CRUD Operations API's 
      path('vendor/', views.productVendorApi, name='productVendorApi'), 
      path('create/', views.productCreateVendorApi, name='productCreateVendorApi'),
      path('<int:id>/', views.productUpdateDeleteApi, name='productUpdateDeleteApi'),

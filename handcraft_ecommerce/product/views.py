@@ -20,6 +20,8 @@ from account.app import upload_photo,delete_photos
 import os
 
 
+
+
 # Products Pagination
 class CustomPagination(PageNumberPagination):
     page_size = 100
@@ -70,7 +72,8 @@ class CustomPagination(PageNumberPagination):
 
 
 
-# Products List and Details API's
+
+# Products List and Details API's and Paginator 
 
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
@@ -135,13 +138,8 @@ def productDetailsApi(request, id):
 
 
 
-
-
-
-
-
-
 # List all Products that belonging to the specified Vendor
+
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([permissions.IsAuthenticated])
@@ -192,7 +190,7 @@ def productCreateVendorApi(request):
                 media_folder = os.path.join(os.getcwd(), "media/product")
                 # save new url
                 Url_Image = upload_photo(os.path.join(media_folder, os.path.basename(serializer['prodImageThumbnail'].value)),f"{product.id}.png", "1bzm8Xuenx4NVyxmJUTV6n5mpmbFrVqg1")
-                product.imageUrl = Url_Image
+                product.prodImageUrl = Url_Image
                 product.save()
                 
                 # remove image from server

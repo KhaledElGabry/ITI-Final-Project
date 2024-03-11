@@ -48,8 +48,6 @@ class ProductSerializer(serializers.ModelSerializer):
          fields = '__all__'
 
          
-
-
          # prodVendor = UserSerializer()
          # prodCategory = CategorySerializer()
          # prodSubCategory = SubCategorySerializer()
@@ -62,9 +60,6 @@ class ProductSerializer(serializers.ModelSerializer):
          product.prodName=validated_data['prodName']
          product.prodPrice=validated_data['prodPrice']
          product.prodDescription=validated_data['prodDescription']
-         # product.prodCategory=validated_data['prodCategory']
-         # prod_sub_category_id = validated_data['prodSubCategory']
-         # print(prod_sub_category_id)
          product.prodSubCategory=validated_data['prodSubCategory']
          product.prodOnSale=validated_data['prodOnSale']
          # product.prodImages=validated_data['prodImages']
