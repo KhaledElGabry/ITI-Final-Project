@@ -11,6 +11,7 @@ class CustomToken(Token):
     def save(self, *args, **kwargs):
         # Set expiration time to 1 minute from now
         self.expires = timezone.now() + timedelta(minutes=3)
+        self.expires = timezone.now() + timedelta(hours=1)
         super().save(*args, **kwargs)
 
     def is_expired(self):

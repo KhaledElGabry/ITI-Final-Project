@@ -129,12 +129,12 @@ class UserView(APIView):
                 
                 # if user has already image on drive
                 if serializer.validated_data.get('image') is not None:
-                    delete_photos(f"{id}.png")
+                    delete_photos(f"{id}.png", "1MhL0rLJd8lvlfC5nwumvERvogXRVKam5")
                            
                 # upload new image
                 media_folder = os.path.join(os.getcwd(), "media/users/images")
                 # save new url
-                Url_Image = upload_photo(os.path.join(media_folder, os.path.basename(serializer['image'].value)),f"{id}.png")
+                Url_Image = upload_photo(os.path.join(media_folder, os.path.basename(serializer['image'].value)),f"{id}.png", "1MhL0rLJd8lvlfC5nwumvERvogXRVKam5")
                 user.imageUrl = Url_Image
                 user.save()
                 
