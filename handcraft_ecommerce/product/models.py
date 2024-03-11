@@ -7,7 +7,7 @@ from account.models import User
 class Product(models.Model):
     prodVendor = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     prodName = models.CharField(max_length=100, verbose_name=('Product Title'))
-    prodPrice = models.DecimalField(default=0, decimal_places=2, max_digits=5, verbose_name=('Product Price'))
+    prodPrice = models.DecimalField(default=0, decimal_places=2, max_digits=8, verbose_name=('Product Price'))
     # prodQuantity = models.IntegerField(default=1, verbose_name=('Product Quantity'))
     prodDescription = models.TextField(max_length=450, default='', blank=True, null=True, verbose_name=('Product Description'))
     #prodCategory = models.ForeignKey('Category', on_delete=models.CASCADE, default=1, verbose_name=('Category Name'))
@@ -15,8 +15,8 @@ class Product(models.Model):
     prodOnSale = models.BooleanField(default=False, verbose_name=('On Sale'))
     # prodRating = models.FloatField(default=0.0, validators=[MinValueValidator(0.0, "Rating must be at least 0.0"), MaxValueValidator(5.0, "Rating cannot exceed 5.0")], verbose_name=('Rate'))
     # prodSlug = models.SlugField(blank=True, null=True, verbose_name=('Slug name'))
-    prodImageThumbnail = models.ImageField(upload_to='product/', default='thumbnails/no-product.png', validators=[FileExtensionValidator(['png','jpg','jpeg'])], verbose_name=('Image Thumbnail'),null=True)
-    imageUrl = models.URLField(null=True)
+    prodImageThumbnail = models.ImageField(upload_to='product/', default='thumbnails/no-product.png', validators=[FileExtensionValidator(['png','jpg','jpeg'])], verbose_name=('Image Thumbnail'), null=True, blank=True)
+    prodImageUrl = models.URLField(null=True)
     # prodImages = models.ManyToManyField('ProductImage', blank=True, verbose_name=('Product Images'))
 
     class Meta:
