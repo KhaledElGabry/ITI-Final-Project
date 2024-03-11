@@ -23,7 +23,8 @@ from functools import reduce
 import operator
 from django.db.models import Q
 from rest_framework import viewsets , mixins
-from .serializers import ProductSearchSerializer , Ratingserializer , Productserializer
+from .serializers import ProductSearchSerializer , Ratingserializer ,FavoriteSerializer
+from django.http import JsonResponse
 
 # All Products List and Details 
 
@@ -267,8 +268,19 @@ def subCategoryDetailsApi(request, id):
 
      return Response({'data':data})
 
+
+
+
+
+
+
+
+
+
+
+
 #================================ API for search =================================================================
-class productserializer(viewsets.GenericViewSet, mixins.ListModelMixin):
+class AllProductSearch(viewsets.GenericViewSet, mixins.ListModelMixin):
     queryset=Product.objects.all()
     serializer_class = ProductSearchSerializer
 
@@ -285,7 +297,7 @@ class productserializer(viewsets.GenericViewSet, mixins.ListModelMixin):
         return self.queryset.filter(text_qs)
         # return self.queryset.filter(name__icontains=text)
 #================================ API for rating =================================================================
-class Ratingserlizer(viewsets.GenericViewSet, mixins.ListModelMixin):
+class RatingSearch(viewsets.GenericViewSet, mixins.ListModelMixin):
     queryset=Rating.objects.all()
     serializer_class = Ratingserializer
 
@@ -303,9 +315,19 @@ class Ratingserlizer(viewsets.GenericViewSet, mixins.ListModelMixin):
         # return self.queryset.filter(name__icontains=text)      
 #================================ API for favorite =================================================================
 
+# def product_rat(request,id):
+#     rate=Rating.objects.filter(product__id=id)
+#     sum=0
+#     for i in rate:
+#         sum += i.rateRating
+#     result=sum/len(rate)
+#     return JsonResponse({'result':result})
+
+
+#-----------------------------------------------------------------------------
 class Favorite(viewsets.GenericViewSet, mixins.ListModelMixin):
     queryset=Product.objects.all()
-    serializer_class = Productserializer
+    serializer_class = FavoriteSerializer
 
     def get_queryset(self):
         text=self.request.query_params.get('query',None)
@@ -320,4 +342,23 @@ class Favorite(viewsets.GenericViewSet, mixins.ListModelMixin):
         return self.queryset.filter(text_qs)
         # return self.queryset.filter(name__icontains=text)
 
+   #----------------------------------------- just try
+# class Favorite(viewsets.GenericViewSet, mixins.ListModelMixin):
+#     queryset = Product.objects.all()
+#     serializer_class = FavoriteSerializer
+
+#     def get_queryset(self):
+#         text = self.request.query_params.get('query', None)
+#         if not text:
+#             return self.queryset
         
+#         text_seq = text.split(' ')
+#         text_qs = reduce(operator.and_, (Q(prodName__icontains=x) for x in text_seq))
+        
+#         return self.queryset.filter(text_qs)
+
+#     def product_rat(self, request, id):
+#         rate = Rating.objects.filter(product__id=id)
+#         total_rating = sum([rating.rateRating for rating in rate])
+#         average_rating = total_rating / len(rate) if len(rate) > 0 else 0
+#         return JsonResponse({'average_rating': average_rating})    

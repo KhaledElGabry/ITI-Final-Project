@@ -20,8 +20,8 @@ class Product(models.Model):
      # prodSlug = models.SlugField(blank=True, null=True, verbose_name=('Slug name'))
      prodImageThumbnail = models.ImageField(upload_to='product/', default='thumbnails/no-product.png', validators=[FileExtensionValidator(['png','jpg','jpeg'])], verbose_name=('Image Thumbnail'))
      # prodImages = models.ManyToManyField('ProductImage', blank=True, verbose_name=('Product Images'))
-
-     favorite=models.ManyToManyField(User,related_name="Favorit")
+     prodFavorite=models.ManyToManyField(User,related_name="Favorite",blank=True,verbose_name=('favorite'))
+     
 
      class Meta:
           verbose_name= ('Product')
@@ -37,13 +37,13 @@ class Product(models.Model):
      
  #------------------------------------------------------------------ Rating -------------------------------------
 class Rating(models.Model):
-    product=models.ForeignKey(Product, on_delete=models.CASCADE)        
-    user=models.ForeignKey(User, on_delete=models.CASCADE)
+    rateProduct=models.ForeignKey(Product, on_delete=models.CASCADE)        
+    rateCustomer=models.ForeignKey(User, on_delete=models.CASCADE)
     
-    rating=models.FloatField(default=0.0)        
-    subject=models.CharField(max_length=2000)        
-    review=models.TextField(max_length=2000,blank=True)        
-    createdDate=models.DateTimeField(default=datetime.now)    
+    rateRating=models.FloatField(default=0.0, validators=[MinValueValidator(0.0, "Rating must be at least 0.0"), MaxValueValidator(5.0, "Rating cannot exceed 5.0")], verbose_name=('Rate'))        
+    rateSubject=models.CharField(max_length=2000)        
+    rateReview=models.TextField(max_length=2000,blank=True)        
+    rateCreatedDate=models.DateTimeField(default=datetime.now)    
      
 #---------------------------------------------------------------------------------------------------------
 class ProductImage(models.Model):

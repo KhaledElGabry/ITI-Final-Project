@@ -10,38 +10,28 @@ class ProductSearchSerializer(serializers.ModelSerializer):
             'prodVendor',
             'prodName',
             'prodPrice',
-            'prodQuantity',
             'prodDescription',
-            'prodCategory',
             'prodSubCategory',
             'prodOnSale',
-            'prodRating',
-            'prodImages',
+            'prodImageThumbnail',
         ]
 
 class Ratingserializer(serializers.ModelSerializer):
     class Meta:
         model=Rating
-        fields=[
-            'product',
-            'user',
-            'rating',
-            'subject',
-            'review',
-            'createdDate',
-        ]
+        fields='__all__'
 
-class Productserializer(serializers.ModelSerializer):
+class FavoriteSerializer(serializers.ModelSerializer):
     class Meta:
         model=Product
         fields=[
             'prodVendor',
             'prodName',
             'prodPrice',
-            'prodCategory',
             'prodSubCategory',
-            'prodImages',
-            'favorite',
+            'prodOnSale',
+            'prodImageThumbnail',
+            'prodFavorite',
         ]                        
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -110,7 +100,7 @@ class ProductSerializer(serializers.ModelSerializer):
          product.prodOnSale=validated_data['prodOnSale']
          product.prodImageThumbnail=validated_data['prodImageThumbnail']
          # product.prodImages=validated_data['prodImages']
-
+        #  product.prodFavorite=validated_data['prodFavorite']
 
          product = Product.objects.create(**validated_data)
          product.save()

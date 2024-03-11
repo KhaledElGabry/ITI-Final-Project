@@ -7,10 +7,10 @@ admin.site.register(ProductImage)
 
 
 class ProductAdmin(admin.ModelAdmin):
-    list_display=['prodName','prodPrice','prodQuantity','prodCategory']
-    list_editable=['prodPrice','prodQuantity','prodCategory']
+    list_display=['prodName','prodVendor','prodPrice']
+    list_editable=['prodPrice']
     search_fields=['prodName']
-    list_filter=['prodCategory']
+    list_filter=['prodName']
 
 admin.site.register(Product,ProductAdmin)
 
@@ -27,7 +27,7 @@ class SubCategoryAdmin(admin.ModelAdmin):
 admin.site.register(SubCategory,SubCategoryAdmin)
 
 class RatingAdmin(admin.ModelAdmin):
-    list_display=['product','user','rating']
-    search_fields=['product']
+    list_display=['rateProduct','rateCustomer','rateRating']
+    search_fields=['rateProduct']
 admin.site.register(Rating,RatingAdmin)
 
