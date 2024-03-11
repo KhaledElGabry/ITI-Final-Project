@@ -61,6 +61,7 @@ class ProductSerializer(serializers.ModelSerializer):
          product.prodPrice=validated_data['prodPrice']
          product.prodDescription=validated_data['prodDescription']
          product.prodSubCategory=validated_data['prodSubCategory']
+         product.prodStock=validated_data['prodStock']
          product.prodOnSale=validated_data['prodOnSale']
          # product.prodImages=validated_data['prodImages']
 
@@ -77,6 +78,7 @@ class ProductSerializer(serializers.ModelSerializer):
         instance.prodDescription = validated_data.get('prodDescription', instance.prodDescription)
         instance.prodSubCategory = validated_data.get('prodSubCategory', instance.prodSubCategory)
         instance.prodOnSale = validated_data.get('prodOnSale', instance.prodOnSale)
+        instance.prodStock = validated_data.get('prodStock', instance.prodStock)
         instance.prodImageThumbnail = validated_data.get('prodImageThumbnail', instance.prodImageThumbnail)
 
 
