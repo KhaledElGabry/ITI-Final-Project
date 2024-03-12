@@ -1,8 +1,8 @@
-from pathlib import Path
+
 from rest_framework import serializers
 from .models import Product, Category, SubCategory, ProductImage , Product , Rating , Product
 from account.serializers import UserSerializer
-from django.core.validators import FileExtensionValidator
+
 
 
 class ProductSearchSerializer(serializers.ModelSerializer):
@@ -14,7 +14,7 @@ class ProductSearchSerializer(serializers.ModelSerializer):
             'prodPrice',
             'prodDescription',
             'prodSubCategory',
-            'prodOnSale',
+            # 'prodOnSale',
             'prodImageThumbnail',
         ]
 
@@ -31,7 +31,7 @@ class FavoriteSerializer(serializers.ModelSerializer):
             'prodName',
             'prodPrice',
             'prodSubCategory',
-            'prodOnSale',
+            # 'prodOnSale',
             'prodImageThumbnail',
             'prodFavorite',
         ]                        
@@ -99,7 +99,7 @@ class ProductSerializer(serializers.ModelSerializer):
         product.prodImageThree = validated_data['prodImageThree']
         product.prodImageFour = validated_data['prodImageFour']
         # product.prodUploadedImages = validated_data['prodUploadedImages']
-        product.prodFavorite=validated_data['prodFavorite']
+
          
         product = Product.objects.create(**validated_data)
 
@@ -112,7 +112,7 @@ class ProductSerializer(serializers.ModelSerializer):
       instance.prodPrice = validated_data.get('prodPrice', instance.prodPrice)
       instance.prodDescription = validated_data.get('prodDescription', instance.prodDescription)
       instance.prodSubCategory = validated_data.get('prodSubCategory', instance.prodSubCategory)
-      instance.prodOnSale = validated_data.get('prodOnSale', instance.prodOnSale)
+      # instance.prodOnSale = validated_data.get('prodOnSale', instance.prodOnSale)
       instance.prodStock = validated_data.get('prodStock', instance.prodStock)
       instance.prodImageThumbnail = validated_data.get('prodImageThumbnail', instance.prodImageThumbnail)
       instance.prodImageOne = validated_data.get('prodImageOne', instance.prodImageOne)
