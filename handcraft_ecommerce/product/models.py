@@ -3,6 +3,7 @@ from tkinter import CASCADE
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator, FileExtensionValidator
 from account.models import User
+from datetime import datetime
 
 class Product(models.Model):
     prodVendor = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
@@ -17,19 +18,30 @@ class Product(models.Model):
     # prodSlug = models.SlugField(blank=True, null=True, verbose_name=('Slug name'))
     prodImageThumbnail = models.ImageField(upload_to='product/', default='thumbnails/no-product.png', validators=[FileExtensionValidator(['png','jpg','jpeg'])], verbose_name=('Image Thumbnail'), null=True, blank=True)
     prodImageUrl = models.URLField(null=True)
-    
+    prodFavorite=models.ManyToManyField(User,related_name="Favorite",blank=True,verbose_name=('favorite'))
 
     class Meta:
         verbose_name = ('Product')
         verbose_name_plural = ('Products')
 
-    # def save(self, *args, **kwargs):
-    #      if not self.prodSlug:
-    #           self.prodSlug = slugify(self.prodName)
-    #      super(Product, self).save(*args, **kwargs)
+     # def save(self, *args, **kwargs):
+     #      if not self.prodSlug:
+     #           self.prodSlug = slugify(self.prodName)
+     #      super(Product, self).save(*args, **kwargs)
+          
+        def __str__(self):
+          return self.prodName
+     
+class Rating(models.Model):
+    rateProduct=models.ForeignKey(Product, on_delete=models.CASCADE)        
+    rateCustomer=models.ForeignKey(User, on_delete=models.CASCADE)
+    
+    rateRating=models.FloatField(default=0.0, validators=[MinValueValidator(0.0, "Rating must be at least 0.0"), MaxValueValidator(5.0, "Rating cannot exceed 5.0")], verbose_name=('Rate'))        
+    rateSubject=models.CharField(max_length=2000)        
+    rateReview=models.TextField(max_length=2000,blank=True)        
+    rateCreatedDate=models.DateTimeField(default=datetime.now)    
+     
 
-    def __str__(self):
-        return self.prodName
 
 class ProductImage(models.Model):
     prodImgsForProduct = models.ForeignKey(Product, on_delete=models.CASCADE, default=None, verbose_name=('Product'))
