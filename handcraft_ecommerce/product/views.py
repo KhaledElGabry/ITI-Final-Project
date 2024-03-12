@@ -179,6 +179,8 @@ def productCreateVendorApi(request):
     product.prodVendor=request.user
     
     if serializer.is_valid():
+    
+    
         prod = ProductSerializer(product)
         # if user send new image
         if 'prodImageThumbnail' in request.data and request.data['prodImageThumbnail'] is not None:
