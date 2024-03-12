@@ -20,6 +20,7 @@ from rest_framework.pagination import PageNumberPagination
 from .serializers import PaginatedProductSerializer
 from account.app import upload_photo,delete_photos
 import os
+from django.http import HttpRequest , HttpResponse
 
 from functools import reduce
 import operator
@@ -27,6 +28,7 @@ from django.db.models import Q
 from rest_framework import viewsets , mixins
 from .serializers import ProductSearchSerializer , Ratingserializer ,FavoriteSerializer
 from django.http import JsonResponse
+from django.core import serializers
 
 # Products Pagination
 class CustomPagination(PageNumberPagination):
@@ -334,70 +336,125 @@ class AllProductSearch(viewsets.GenericViewSet, mixins.ListModelMixin):
         
 
         return self.queryset.filter(text_qs)
-        # return self.queryset.filter(name__icontains=text)
 #================================ API for rating =================================================================
-class RatingSearch(viewsets.GenericViewSet, mixins.ListModelMixin):
-    queryset=Rating.objects.all()
-    serializer_class = Ratingserializer
 
-    def get_queryset(self):
-        text=self.request.query_params.get('query',None)
-        if not text:
-            return self.queryset
-        
-        text_seq=text.split(' ')
-        text_qs=reduce(operator.and_,
-                       (Q(product__icontains=x)for x in text_seq))
-        
+#--------------------------------- averege rating ---------------------------
+def product_rat(request,id):
+    rate=Rating.objects.filter(rateProduct__id=id)
+    product=Product.objects.get(id=id)
+    sum=0
+    for i in rate:
+        sum += i.rateRating
+    result=sum/len(rate)
+    return JsonResponse({'id':product.id,'product':product.prodName,'averege Rate':result})
 
-        return self.queryset.filter(text_qs)
-        # return self.queryset.filter(name__icontains=text)      
+#-------------------------------------------Rate product------------------------------------------------------
+# @api_view(['POST'])
+# @authentication_classes([TokenAuthentication])
+# @permission_classes([permissions.IsAuthenticated])
+# def submite_review(request,product_id):
+#     if request.user.usertype != "vendor":
+#          raise AuthenticationFailed({"message":'only vendor can access.'})
+         
+#     token = CustomToken.objects.get(user=request.user)
+#     if token.expires and token.is_expired():
+#             raise AuthenticationFailed({"data":"expired_token.", "message":'Please login again.'})
+    
+#     if request.method == 'POST':
+#         try:
+#             rating = Rating.objects.get(user__id=request.user.id, product__id=product_id)
+#             rating.rating = request.POST.get('rateRating')
+#             rating.subject = request.POST.get('rateSubject')
+#             rating.review = request.POST.get('rateReview')
+#             rating.save()
+#             return JsonResponse({'reviews': rating})
+#         except Rating.DoesNotExist:        
+#             rating = Rating(user=request.user, product_id=product_id)
+#             rating.rating = request.POST.get('rateRating')
+#             rating.subject = request.POST.get('rateSubject')
+#             rating.review = request.POST.get('rateReview')
+#             rating.save()
+#             return JsonResponse({'reviews': rating})
 #================================ API for favorite =================================================================
 
-# def product_rat(request,id):
-#     rate=Rating.objects.filter(product__id=id)
-#     sum=0
-#     for i in rate:
-#         sum += i.rateRating
-#     result=sum/len(rate)
-#     return JsonResponse({'result':result})
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([permissions.IsAuthenticated])
+def remove_from_Favorite(request,id):
+
+    if request.user.usertype == "vendor":
+         raise AuthenticationFailed({"message":'only customer can access.'})
+         
+    token = CustomToken.objects.get(user=request.user)
+    if token.expires and token.is_expired():
+            raise AuthenticationFailed({"data":"expired_token.", "message":'Please login again.'})
+    
+    product=Product.objects.get(id=id)
+    if product.prodFavorite.filter(id=request.user.id).count() > 0:
+        product.prodFavorite.remove(request.user)
+        product.save()      
+        return JsonResponse({'message': 'Product was removed from favorites.'}) 
+    return JsonResponse({})
 
 
+
+
+
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([permissions.IsAuthenticated])
+def add_to_Favorite(request,id):
+
+    if request.user.usertype == "vendor":
+         raise AuthenticationFailed({"message":'only customer can access.'})
+         
+    token = CustomToken.objects.get(user=request.user)
+    if token.expires and token.is_expired():
+            raise AuthenticationFailed({"data":"expired_token.", "message":'Please login again.'})
+    
+    product=Product.objects.get(id=id)
+    if product.prodFavorite.filter(id=request.user.id).count() == 0:
+        product.prodFavorite.add(request.user) 
+        product.save()
+        return JsonResponse({'message': 'Product was added to favorites.'})      
+    return JsonResponse({})
+
+
+
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([permissions.IsAuthenticated])
+def user_favorite(request):
+
+    if request.user.usertype == "vendor":
+         raise AuthenticationFailed({"message":'only customer can access.'})
+         
+    token = CustomToken.objects.get(user=request.user)
+    if token.expires and token.is_expired():
+            raise AuthenticationFailed({"data":"expired_token.", "message":'Please login again.'})
+    
+    user_favorites=Product.objects.filter(prodFavorite=request.user)
+    favorite_products_list = [{'id': product.id, 'name': product.prodName, 'price': product.prodPrice} for product in user_favorites]
+    return JsonResponse({'favorite_products': favorite_products_list})
+
+
+
+# @api_view(['POST'])
+# @authentication_classes([TokenAuthentication])
+# @permission_classes([permissions.IsAuthenticated])
+# def user_favorite(request):
+
+#     if request.user.usertype == "vendor":
+#          raise AuthenticationFailed({"message":'only customer can access.'})
+         
+#     token = CustomToken.objects.get(user=request.user)
+#     if token.expires and token.is_expired():
+#             raise AuthenticationFailed({"data":"expired_token.", "message":'Please login again.'})
+    
+#     # user_favorite_products = Product.objects.filter(prodFavorite__id=request.user.id)
+#     # favorite_products_json = serializers.serialize('json', user_favorite_products)
+#     # return JsonResponse({'favorite_products': favorite_products_json})
+
+#     user_favorites=Product.objects.filter(prodFavorite=request.user)
+#     return JsonResponse({'favorite_products': user_favorites})
 #-----------------------------------------------------------------------------
-class Favorite(viewsets.GenericViewSet, mixins.ListModelMixin):
-    queryset=Product.objects.all()
-    serializer_class = FavoriteSerializer
-
-    def get_queryset(self):
-        text=self.request.query_params.get('query',None)
-        if not text:
-            return self.queryset
-        
-        text_seq=text.split(' ')
-        text_qs=reduce(operator.and_,
-                       (Q(prodName__icontains=x)for x in text_seq))
-        
-
-        return self.queryset.filter(text_qs)
-        # return self.queryset.filter(name__icontains=text)
-
-   #----------------------------------------- just try
-# class Favorite(viewsets.GenericViewSet, mixins.ListModelMixin):
-#     queryset = Product.objects.all()
-#     serializer_class = FavoriteSerializer
-
-#     def get_queryset(self):
-#         text = self.request.query_params.get('query', None)
-#         if not text:
-#             return self.queryset
-        
-#         text_seq = text.split(' ')
-#         text_qs = reduce(operator.and_, (Q(prodName__icontains=x) for x in text_seq))
-        
-#         return self.queryset.filter(text_qs)
-
-#     def product_rat(self, request, id):
-#         rate = Rating.objects.filter(product__id=id)
-#         total_rating = sum([rating.rateRating for rating in rate])
-#         average_rating = total_rating / len(rate) if len(rate) > 0 else 0
-#         return JsonResponse({'average_rating': average_rating})    

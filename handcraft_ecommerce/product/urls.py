@@ -10,15 +10,6 @@ router.register('search',
                 views.AllProductSearch,
                 basename='search-product')
 
-
-router.register('rating',
-                views.RatingSearch,
-                basename='Rating')
-
-router.register('favorite',
-                views.Favorite,
-                basename='Favorite')
-
 urlpatterns = [
 
 
@@ -42,10 +33,13 @@ urlpatterns = [
      path('subcategory/<int:id>/', views.subCategoryDetailsApi, name='subCategoryDetailsApi'),
 
      # favorite prod
-     # path('product_r/<int:id>/',views.product_rat),
-     
-#      path('api/favorite/', Favorite.as_view({'get': 'list'}), name='favorite-list'),
-#     path('api/product/<int:id>/rating/', product_rat, name='product-rating-api'),
+    path('add_to_Favorite/<int:id>/',views.add_to_Favorite, name='add_to_Favorite'),
+    path('remove_from_Favorite/<int:id>/',views.remove_from_Favorite, name='remove_from_Favorite'),
+    path('user_favorite/',views.user_favorite, name='user_favorite'),
+
+     #  rating 
+     path('product_r/<int:id>/',views.product_rat),
+     path('submit_review/<int:product_id>/', views.submite_review, name='submit_review'),
 
      # all product url for search bar
      path('',include(router.urls)),
