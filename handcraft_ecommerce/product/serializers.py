@@ -56,8 +56,6 @@ class ProductSerializer(serializers.ModelSerializer):
          fields = '__all__'
 
          
-
-
          # prodVendor = UserSerializer()
          # prodCategory = CategorySerializer()
          # prodSubCategory = SubCategorySerializer()
@@ -70,10 +68,8 @@ class ProductSerializer(serializers.ModelSerializer):
          product.prodName=validated_data['prodName']
          product.prodPrice=validated_data['prodPrice']
          product.prodDescription=validated_data['prodDescription']
-         # product.prodCategory=validated_data['prodCategory']
-         # prod_sub_category_id = validated_data['prodSubCategory']
-         # print(prod_sub_category_id)
          product.prodSubCategory=validated_data['prodSubCategory']
+         product.prodStock=validated_data['prodStock']
          product.prodOnSale=validated_data['prodOnSale']
          # product.prodImages=validated_data['prodImages']
 
@@ -90,6 +86,7 @@ class ProductSerializer(serializers.ModelSerializer):
         instance.prodDescription = validated_data.get('prodDescription', instance.prodDescription)
         instance.prodSubCategory = validated_data.get('prodSubCategory', instance.prodSubCategory)
         instance.prodOnSale = validated_data.get('prodOnSale', instance.prodOnSale)
+        instance.prodStock = validated_data.get('prodStock', instance.prodStock)
         instance.prodImageThumbnail = validated_data.get('prodImageThumbnail', instance.prodImageThumbnail)
 
 
@@ -103,52 +100,12 @@ class ProductSerializer(serializers.ModelSerializer):
 
 
 
-   
-
-
-
-
-      # prod_sub_category_data = validated_data.pop('prodSubCategory_data', None)
-      # if prod_sub_category_data:
-      #       prod_sub_category, _ = SubCategory.objects.get_or_create(**prod_sub_category_data)
-      # elif prod_sub_category_id:
-      #       prod_sub_category = SubCategory.objects.get(id=prod_sub_category_id)
-      # else:
-      #       prod_sub_category = None
-
-      #   # Create the Product instance
-      # product = Product.objects.create(**validated_data)
-
-      #   # Set the prodSubCategory if available
-      # if prod_sub_category:
-      #       product.prodSubCategory = prod_sub_category
-      #       product.save()
-
-      # return product
-
+class PaginatedProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = '__all__'
 
 
 
       
      
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      # product.prodRating=validated_data.get('rating', 0.0)
-      # prodSlug
