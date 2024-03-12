@@ -18,6 +18,7 @@ from rest_framework.pagination import PageNumberPagination
 from .serializers import PaginatedProductSerializer
 from account.app import upload_photo,delete_photos
 import os
+from account.serializers import UserSerializer
 
 
 
@@ -133,6 +134,19 @@ def productDetailsApi(request, id):
     data = ProductSerializer(productDetails).data
     return Response({'data':data})
 
+
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([permissions.IsAuthenticated])
+def vendorProductDetailsApi(request, id):
+     token = CustomToken.objects.get(user=request.user)
+     if token.expires and token.is_expired():
+            raise AuthenticationFailed({"data":"expired_token.", "message":'Please login again.'})
+     
+     vendor = get_object_or_404(User, id=id, usertype="vendor")
+     products = Product.objects.filter(prodVendor=vendor)
+     data = ProductSerializer(products, many=True).data
+     return Response({'data':data})
 
 
 
