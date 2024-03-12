@@ -12,7 +12,7 @@ class ProductSearchSerializer(serializers.ModelSerializer):
             'prodPrice',
             'prodDescription',
             'prodSubCategory',
-            'prodOnSale',
+            # 'prodOnSale',
             'prodImageThumbnail',
         ]
 
@@ -29,7 +29,7 @@ class FavoriteSerializer(serializers.ModelSerializer):
             'prodName',
             'prodPrice',
             'prodSubCategory',
-            'prodOnSale',
+            # 'prodOnSale',
             'prodImageThumbnail',
             'prodFavorite',
         ]                        
@@ -95,7 +95,7 @@ class ProductSerializer(serializers.ModelSerializer):
          product.prodDescription=validated_data['prodDescription']
          product.prodSubCategory=validated_data['prodSubCategory']
          product.prodStock=validated_data['prodStock']
-         product.prodOnSale=validated_data['prodOnSale']
+        #  product.prodOnSale=validated_data['prodOnSale']
          # product.prodImages=validated_data['prodImages']
          # uploaded_data = validated_data.pop('uploaded_images')
          # uploadedImagesData = validated_data.pop('uploadedImages')
@@ -118,7 +118,7 @@ class ProductSerializer(serializers.ModelSerializer):
         instance.prodPrice = validated_data.get('prodPrice', instance.prodPrice)
         instance.prodDescription = validated_data.get('prodDescription', instance.prodDescription)
         instance.prodSubCategory = validated_data.get('prodSubCategory', instance.prodSubCategory)
-        instance.prodOnSale = validated_data.get('prodOnSale', instance.prodOnSale)
+        # instance.prodOnSale = validated_data.get('prodOnSale', instance.prodOnSale)
         instance.prodStock = validated_data.get('prodStock', instance.prodStock)
         instance.prodImageThumbnail = validated_data.get('prodImageThumbnail', instance.prodImageThumbnail)
 

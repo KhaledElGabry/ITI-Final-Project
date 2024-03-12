@@ -11,7 +11,7 @@ class CartItem(models.Model):
     quantity = models.IntegerField(default=1)
 
     def __str__(self):
-        return f"{self.quantity} of {self.item.name}"
+        return f"{self.quantity} of {self.item.prodName}"
 
     def get_total_item_price(self):
         return self.quantity * self.item.prodPrice

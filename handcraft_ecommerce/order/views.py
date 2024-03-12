@@ -51,12 +51,15 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import authentication_classes
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
+@authentication_classes([TokenAuthentication])
 def get_orders(request):
     orders = Order.objects.all()
     serializer = OrderSerializer(orders, many=True)
     return Response({'orders': serializer.data})
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
+@authentication_classes([TokenAuthentication])
 def get_order(request, pk):
     order = get_object_or_404(Order, id=pk)
     serializer = OrderSerializer(order)
@@ -64,6 +67,7 @@ def get_order(request, pk):
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
+@authentication_classes([TokenAuthentication])
 def process_order(request, pk):
     order = get_object_or_404(Order, id=pk)
     serializer = OrderSerializer(order, data=request.data, partial=True)
@@ -72,8 +76,10 @@ def process_order(request, pk):
         return Response({'order': serializer.data})
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
+@authentication_classes([TokenAuthentication])
 def delete_order(request, pk):
     order = get_object_or_404(Order, id=pk)
     order.delete()

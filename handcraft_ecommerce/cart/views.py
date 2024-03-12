@@ -53,6 +53,7 @@ def addToCart(request):
     return Response({'msg': 'added', 'total_item_price': total_item_price, 'quantity': cart_item.quantity}, status=status.HTTP_201_CREATED)
 
 
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 @authentication_classes([TokenAuthentication])
@@ -81,6 +82,7 @@ def listCartItems(request):
         return Response(response_data)
     except CustomToken.DoesNotExist:
         raise AuthenticationFailed({"data": "token_missing.", "message": 'Please provide a valid token.'})
+    
     
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
