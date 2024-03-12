@@ -7,16 +7,16 @@ from account.models import User
 class Product(models.Model):
     prodVendor = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     prodName = models.CharField(max_length=100, verbose_name=('Product Title'))
-    prodPrice = models.DecimalField(default=0, decimal_places=2, max_digits=5, verbose_name=('Product Price'))
-    # prodQuantity = models.IntegerField(default=1, verbose_name=('Product Quantity'))
+    prodPrice = models.DecimalField(default=0, decimal_places=2, max_digits=8, verbose_name=('Product Price'))
     prodDescription = models.TextField(max_length=450, default='', blank=True, null=True, verbose_name=('Product Description'))
     #prodCategory = models.ForeignKey('Category', on_delete=models.CASCADE, default=1, verbose_name=('Category Name'))
     prodSubCategory = models.ForeignKey('SubCategory', on_delete=models.CASCADE, default=1, verbose_name=('Sub Category Name'),)
     prodOnSale = models.BooleanField(default=False, verbose_name=('On Sale'))
+    prodStock = models.IntegerField(default=0, verbose_name=('On Stock'))
     # prodRating = models.FloatField(default=0.0, validators=[MinValueValidator(0.0, "Rating must be at least 0.0"), MaxValueValidator(5.0, "Rating cannot exceed 5.0")], verbose_name=('Rate'))
     # prodSlug = models.SlugField(blank=True, null=True, verbose_name=('Slug name'))
-    prodImageThumbnail = models.ImageField(upload_to='product/', default='thumbnails/no-product.png', validators=[FileExtensionValidator(['png','jpg','jpeg'])], verbose_name=('Image Thumbnail'),null=True)
-    imageUrl = models.URLField(null=True)
+    prodImageThumbnail = models.ImageField(upload_to='product/', default='thumbnails/no-product.png', validators=[FileExtensionValidator(['png','jpg','jpeg'])], verbose_name=('Image Thumbnail'), null=True, blank=True)
+    prodImageUrl = models.URLField(null=True)
     # prodImages = models.ManyToManyField('ProductImage', blank=True, verbose_name=('Product Images'))
 
     class Meta:
@@ -69,14 +69,16 @@ class SubCategory(models.Model):
 
 
 # class Order(models.Model):
-#      ordCustomer = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
-     # ordTime = models.DateTimeField(auto_now_add=True)
+#     ordCustomer = models.ForeignKey(User, on_delete=models.CASCADE, null=True, verbose_name=('Customer Name'))
+#     ordTime = models.DateTimeField(auto_now_add=True, verbose_name=('Order Submitted Time'))
+#     ordQuantity = models.IntegerField(default=1, verbose_name=('Order Quantity'))
+
      
        
      
 # class OrderItems(models.Model):
-#      ordItmOrder = models.ForeignKey(Order,  on_delete=models.CASCADE, null=True)
-#      ordProduct = models.ForeignKey(Product,  on_delete=models.CASCADE, null=True)
+#     ordItmOrder = models.ForeignKey(Order,  on_delete=models.CASCADE, null=True)
+#     ordProduct = models.ForeignKey(Product,  on_delete=models.CASCADE, null=True)
      
-     #   def __str__(self):
-     #      return self.ordProduct.prodName
+#     def __str__(self):
+#         return self.ordProduct.prodName
