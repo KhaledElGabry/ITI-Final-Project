@@ -161,33 +161,34 @@ STRIPE_PUBLIC_KEY="pk_test_51Ori5DKxvLWmSwKTHhWbP8C563cxgB3hNcXmyR3ekcYPdyU72FJ5
 STRIPE_SECRET_KEY="sk_test_51Ori5DKxvLWmSwKThggOsvo4Ayh3HrGANxSR8nIiHz7UAjH8xUsnJXZ0bYDKFU8cpYUTOuIQ3z1GCCmBCxZNh3ai000g8Tq5WG"
 SITE_URL='http://localhost:3000/'
 
+
 JAZZMIN_SETTINGS = {
     # title of the window (Will default to current_admin_site.site_title if absent or None)
-    "site_title": "",
+    "site_title": "HandCraft",
 
     # Title on the login screen (19 chars max) (defaults to current_admin_site.site_header if absent or None)
-    "site_header": "IMS",
+    "site_header": "Admin HandCraft E-C",
 
     # Title on the brand (19 chars max) (defaults to current_admin_site.site_header if absent or None)
-    "site_brand": "Library",
+    "site_brand": "",
 
     # Logo to use for your site, must be present in static files, used for brand on top left
-    "site_logo": "Photo\24\02\24\Dodge-Viper-11_2.jpg",
+    "site_logo": "",
 
     # Logo to use for your site, must be present in static files, used for login form logo (defaults to site_logo)
-    "login_logo": None,
+    "login_logo": "",
 
     # Logo to use for login form in dark themes (defaults to login_logo)
-    "login_logo_dark": None,
+    "login_logo_dark": "",
 
     # CSS classes that are applied to the logo above
     "site_logo_classes": "img-circle",
 
     # Relative path to a favicon for your site, will default to site_logo if absent (ideally 32x32 px)
-    "site_icon": None,
+    "site_icon": "logo.jpg",
 
     # Welcome text on the login screen
-    "welcome_sign": "Welcome to the library",
+    "welcome_sign": "Welcome to HandCraft E-Commerce Site",
 
     # Copyright on the footer
     "copyright": "Acme Library Ltd",
