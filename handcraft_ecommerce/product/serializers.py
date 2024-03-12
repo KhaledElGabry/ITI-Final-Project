@@ -1,7 +1,38 @@
 from rest_framework import serializers
-from .models import Product, Category, SubCategory, ProductImage
+from .models import Product, Category, SubCategory, ProductImage , Product , Rating , Product
 from account.serializers import UserSerializer
 
+
+class ProductSearchSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Product
+        fields=[
+            'prodVendor',
+            'prodName',
+            'prodPrice',
+            'prodDescription',
+            'prodSubCategory',
+            'prodOnSale',
+            'prodImageThumbnail',
+        ]
+
+class RatingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Rating
+        fields='__all__'
+
+class FavoriteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Product
+        fields=[
+            'prodVendor',
+            'prodName',
+            'prodPrice',
+            'prodSubCategory',
+            'prodOnSale',
+            'prodImageThumbnail',
+            'prodFavorite',
+        ]                        
 
 class CategorySerializer(serializers.ModelSerializer):
       class Meta:
@@ -68,6 +99,7 @@ class ProductSerializer(serializers.ModelSerializer):
          # product.prodImages=validated_data['prodImages']
          # uploaded_data = validated_data.pop('uploaded_images')
          # uploadedImagesData = validated_data.pop('uploadedImages')
+        # product.prodFavorite=validated_data['prodFavorite']
 
 
      
