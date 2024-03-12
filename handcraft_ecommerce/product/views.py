@@ -28,7 +28,7 @@ from rest_framework import viewsets, mixins
 from .serializers import ProductSearchSerializer, RatingSerializer, FavoriteSerializer
 from django.http import JsonResponse
 from django.core import serializers
-
+from django.core.paginator import Paginator
 
 
 
@@ -85,53 +85,69 @@ class CustomPagination(PageNumberPagination):
 
 # Products List and Details API's and Paginator 
 
+
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
-@permission_classes([permissions.IsAuthenticated])
+@permission_classes([IsAuthenticated])
 def productListApi(request):
-    token = CustomToken.objects.get(user=request.user)
-    if token.expires and token.is_expired():
-        raise AuthenticationFailed({"data": "expired_token.", "message": 'Please login again.'})
+    try:
+        token = CustomToken.objects.get(user=request.user)
+        if token.expires and token.is_expired():
+            raise AuthenticationFailed({"data": "expired_token.", "message": 'Please login again.'})
+        
+        products = Product.objects.all()
+        
+        # Pagination
+        limit = request.query_params.get('limit')
+        skip = request.query_params.get('skip')
+        
+        if limit is not None:
+            try:
+                limit = int(limit)
+                if limit < 0:
+                    limit = None
+            except ValueError:
+                limit = None
+        
+        if skip is not None:
+            try:
+                skip = int(skip)
+                if skip < 0:
+                    skip = None
+            except ValueError:
+                skip = None
+        
+        if skip:
+            products = products[skip:]
+        
+        paginator = Paginator(products, limit)
+        page_number = request.query_params.get('page', 1)
+        page_obj = paginator.get_page(page_number)
+        
+        # Serialize products with vendor data
+        product_data = []
+        for product in page_obj:
+            product_serializer = ProductSerializer(product)
+            vendor_data = UserSerializer(product.prodVendor).data
+            product_data.append({
+                "product": product_serializer.data,
+                "vendor": vendor_data
+            })
+        
+        # Return paginated product data
+        return Response({
+            "count": paginator.count,
+            "next": page_obj.next_page_number() if page_obj.has_next() else None,
+            "previous": page_obj.previous_page_number() if page_obj.has_previous() else None,
+            "results": product_data
+        })
+    except CustomToken.DoesNotExist:
+        raise AuthenticationFailed({"data": "invalid_token.", "message": 'Token is invalid or expired.'})
     
-    paginator = CustomPagination()
-    products = Product.objects.all()
     
-    limit = request.query_params.get('limit')
-    skip = request.query_params.get('skip')
     
-    if limit is not None:
-        try:
-            limit = int(limit)
-            if limit < 0:
-                limit = 0
-        except ValueError:
-            limit = None
     
-    if skip is not None:
-        try:
-            skip = int(skip)
-            if skip < 0:
-                skip = 0
-        except ValueError:
-            skip = None
     
-    if limit is not None and skip is not None:
-        products = products[skip:skip+limit]
-    elif limit is not None:
-        products = products[:limit]
-    elif skip is not None:
-        products = products[skip:]
-    
-    # Paginate the products
-    paginated_products = paginator.paginate_queryset(products, request)
-    
-    # Serialize paginated products
-    serializer = ProductSerializer(paginated_products, many=True)
-    
-    # Return paginated response
-    return paginator.get_paginated_response(serializer.data)
-
-
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([permissions.IsAuthenticated])

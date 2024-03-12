@@ -10,24 +10,15 @@ class Product(models.Model):
     prodName = models.CharField(max_length=100, verbose_name=('Product Title'))
     prodPrice = models.DecimalField(default=0, decimal_places=2, max_digits=8, verbose_name=('Product Price'))
     prodDescription = models.TextField(max_length=450, default='', blank=True, null=True, verbose_name=('Product Description'))
-    #prodCategory = models.ForeignKey('Category', on_delete=models.CASCADE, default=1, verbose_name=('Category Name'))
     prodSubCategory = models.ForeignKey('SubCategory', on_delete=models.CASCADE, default=1, verbose_name=('Sub Category Name'),)
-    # prodOnSale = models.BooleanField(default=False, verbose_name=('On Sale'))
     prodStock = models.IntegerField(default=0, verbose_name=('On Stock'))
-    # prodRating = models.FloatField(default=0.0, validators=[MinValueValidator(0.0, "Rating must be at least 0.0"), MaxValueValidator(5.0, "Rating cannot exceed 5.0")], verbose_name=('Rate'))
-    # prodSlug = models.SlugField(blank=True, null=True, verbose_name=('Slug name'))
     prodImageThumbnail = models.ImageField(upload_to='product/', default='thumbnails/no-product.png', validators=[FileExtensionValidator(['png','jpg','jpeg'])], verbose_name=('Image Thumbnail'), null=True, blank=True)
     prodImageUrl = models.URLField(null=True)
-    # prodFavorite=models.ManyToManyField(User,related_name="Favorite",blank=True,verbose_name=('favorite'))
-
+ 
     class Meta:
         verbose_name = ('Product')
         verbose_name_plural = ('Products')
 
-     # def save(self, *args, **kwargs):
-     #      if not self.prodSlug:
-     #           self.prodSlug = slugify(self.prodName)
-     #      super(Product, self).save(*args, **kwargs)
           
         def __str__(self):
           return self.prodName
