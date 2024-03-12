@@ -17,7 +17,7 @@ class Product(models.Model):
     # prodSlug = models.SlugField(blank=True, null=True, verbose_name=('Slug name'))
     prodImageThumbnail = models.ImageField(upload_to='product/', default='thumbnails/no-product.png', validators=[FileExtensionValidator(['png','jpg','jpeg'])], verbose_name=('Image Thumbnail'), null=True, blank=True)
     prodImageUrl = models.URLField(null=True)
-    # prodImages = models.ManyToManyField('ProductImage', blank=True, verbose_name=('Product Images'))
+    
 
     class Meta:
         verbose_name = ('Product')
@@ -32,15 +32,16 @@ class Product(models.Model):
         return self.prodName
 
 class ProductImage(models.Model):
-    prodImageProduct = models.ForeignKey(Product, on_delete=models.CASCADE, default=None, verbose_name=('Product'))
-    prodImage = models.ImageField(upload_to='product/', validators=[FileExtensionValidator(['png','jpg','jpeg'])], verbose_name=('Product Images'))
-
+    prodImgsForProduct = models.ForeignKey(Product, on_delete=models.CASCADE, default=None, verbose_name=('Product'))
+    prodImages = models.FileField(upload_to='product/',  validators=[FileExtensionValidator(['png','jpg','jpeg'])], verbose_name=('Product Images'))
     class Meta:
         verbose_name = ("Product Image")
         verbose_name_plural = ("Product Images")
 
     def __str__(self):
         return str(self.prodImage)
+
+
 
 class Category(models.Model):
     cateName = models.CharField(max_length=50, verbose_name=('Category Name'))
