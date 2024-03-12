@@ -227,3 +227,18 @@ def send_verification_email(user):
     subject = 'Email Verification'
     message = f'Click the following link to verify your email: http://localhost:8000/api/verify-email?token={user.verification_token}'
     send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email])
+    
+    
+
+
+
+from django.contrib.auth.views import LogoutView
+from django.http import HttpResponseRedirect
+
+class CustomLogoutView(LogoutView):
+    def dispatch(self, request, *args, **kwargs):
+        if request.method == 'GET':
+            self.logout(request)
+            return HttpResponseRedirect(self.get_next_page())
+        else:
+            return super().dispatch(request, *args, **kwargs)
