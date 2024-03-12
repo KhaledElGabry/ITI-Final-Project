@@ -80,18 +80,3 @@ class SubCategory(models.Model):
     def __str__(self):
         return self.subCateName
 
-
-# class Order(models.Model):
-#     ordCustomer = models.ForeignKey(User, on_delete=models.CASCADE, null=True, verbose_name=('Customer Name'))
-#     ordTime = models.DateTimeField(auto_now_add=True, verbose_name=('Order Submitted Time'))
-#     ordQuantity = models.IntegerField(default=1, verbose_name=('Order Quantity'))
-
-     
-       
-     
-# class OrderItems(models.Model):
-#     ordItmOrder = models.ForeignKey(Order,  on_delete=models.CASCADE, null=True)
-#     ordProduct = models.ForeignKey(Product,  on_delete=models.CASCADE, null=True)
-     
-#     def __str__(self):
-#         return self.ordProduct.prodName

@@ -155,11 +155,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 #         'rest_framework.authentication.BasicAuthentication',
 #     ],
 # }
-<<<<<<< HEAD
+
 STRIPE_PUBLIC_KEY="pk_test_51Ori5DKxvLWmSwKTHhWbP8C563cxgB3hNcXmyR3ekcYPdyU72FJ5qunHFjBLc85NNFNlDoJR9Z5lGJMoFL40bGxh00oVXVBwJQ"
 STRIPE_SECRET_KEY="sk_test_51Ori5DKxvLWmSwKThggOsvo4Ayh3HrGANxSR8nIiHz7UAjH8xUsnJXZ0bYDKFU8cpYUTOuIQ3z1GCCmBCxZNh3ai000g8Tq5WG"
 SITE_URL='http://localhost:3000/'
-=======
 
 JAZZMIN_SETTINGS = {
     # title of the window (Will default to current_admin_site.site_title if absent or None)
@@ -301,4 +300,3 @@ JAZZMIN_SETTINGS = {
     # Add a language dropdown into the admin
     "language_chooser": False,
 }
->>>>>>> 4458116ca782be77965875953e456f07648f0b44

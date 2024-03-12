@@ -149,3 +149,6 @@ def deleteAllCartProducts(request):
         return Response({'msg': 'All cart products deleted'}, status=status.HTTP_200_OK)
     except Exception as e:
         return Response({'msg': 'Failed to delete cart products', 'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
