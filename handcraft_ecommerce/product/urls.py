@@ -42,7 +42,7 @@ urlpatterns = [
 
      #  rating 
      path('product_r/<int:id>/',views.product_rat),
-     path('submit_review/<int:product_id>/', views.submite_review, name='submit_review'),
+     # path('submit_review/<int:product_id>/', views.submite_review, name='submit_review'),
 
      # all product url for search bar
      path('',include(router.urls)),
