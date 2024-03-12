@@ -9,6 +9,8 @@ urlpatterns = [
      # product list & details API's (FunctionBasedView)
      path('', views.productListApi, name='productListApi'),
      path('details/<int:id>/', views.productDetailsApi, name='productDetailsApi'),
+     path('vendor/<int:id>/', views.vendorProductDetailsApi, name='productDetailsApi'),
+
 
      # vendor API's (FunctionBasedView)
      path('vendor/', views.productVendorApi, name='productVendorApi'), 

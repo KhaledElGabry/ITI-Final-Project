@@ -4,9 +4,17 @@ from account.serializers import UserSerializer
 
 
 class CategorySerializer(serializers.ModelSerializer):
-     class Meta:
+      class Meta:
         model = Category
         fields = '__all__'
+
+      def create(self,validated_data):
+        category=Category()
+        category.cateName=validated_data['name']
+      #   category.cateParent=validated_data['price']
+        category.cateDescription=validated_data['price']
+      #   category.cateImage=validated_data['price']
+        return category
 
 
 

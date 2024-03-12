@@ -18,6 +18,7 @@ from account.models import CustomToken
 from rest_framework.exceptions import AuthenticationFailed
 from account.app import upload_photo,delete_photos
 import os
+from account.serializers import UserSerializer
 
 
 # All Products List and Details 
@@ -31,6 +32,16 @@ def productListApi(request):
             raise AuthenticationFailed({"data":"expired_token.", "message":'Please login again.'})
      products = Product.objects.all()
      data = ProductSerializer(products, many=True).data
+     for product in data:
+        try:
+            vendor_data = UserSerializer(User.objects.get(id=product["prodVendor"])).data
+            product["prodVendor"] = vendor_data
+        except User.DoesNotExist:
+            product["prodVendor"] = None
+       
+
+        
+     
      return Response({'data':data})
 
 
@@ -43,8 +54,24 @@ def productDetailsApi(request, id):
             raise AuthenticationFailed({"data":"expired_token.", "message":'Please login again.'})
      productDetails = Product.objects.get(id=id)
      data = ProductSerializer(productDetails).data
+     
+
+     data["prodVendor"]= UserSerializer(User.objects.get(id=data["prodVendor"])).data
      return Response({'data':data})
 
+
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([permissions.IsAuthenticated])
+def vendorProductDetailsApi(request, id):
+     token = CustomToken.objects.get(user=request.user)
+     if token.expires and token.is_expired():
+            raise AuthenticationFailed({"data":"expired_token.", "message":'Please login again.'})
+     
+     vendor = get_object_or_404(User, id=id, usertype="vendor")
+     products = Product.objects.filter(prodVendor=vendor)
+     data = ProductSerializer(products, many=True).data
+     return Response({'data':data})
 
 
 
@@ -247,7 +274,10 @@ class ProductDelete(DestroyAPIView):
 
 
 
-
+# serializer = ProductSerializer(data=request.data)
+#     serializer.is_valid(raise_exception=True)
+#     product = serializer.save()
+#     product.prodVendor=request.user
 
 
 # All Category List and Details 
