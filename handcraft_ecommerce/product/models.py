@@ -13,6 +13,10 @@ class Product(models.Model):
     prodSubCategory = models.ForeignKey('SubCategory', on_delete=models.CASCADE, default=1, verbose_name=('Sub Category Name'),)
     prodStock = models.IntegerField(default=0, verbose_name=('On Stock'))
     prodImageThumbnail = models.ImageField(upload_to='product/', default='thumbnails/no-product.png', validators=[FileExtensionValidator(['png','jpg','jpeg'])], verbose_name=('Image Thumbnail'), null=True, blank=True)
+    prodImageOne = models.ImageField(upload_to='product/', default='thumbnails/no-product.png', validators=[FileExtensionValidator(['png','jpg','jpeg'])], verbose_name=('Product Image One'), null=True, blank=True)
+    prodImageTwo = models.ImageField(upload_to='product/', default='thumbnails/no-product.png', validators=[FileExtensionValidator(['png','jpg','jpeg'])], verbose_name=('Product Image Two'), null=True, blank=True)
+    prodImageThree = models.ImageField(upload_to='product/', default='thumbnails/no-product.png', validators=[FileExtensionValidator(['png','jpg','jpeg'])], verbose_name=('Product Image Three'), null=True, blank=True)
+    prodImageFour = models.ImageField(upload_to='product/', default='thumbnails/no-product.png', validators=[FileExtensionValidator(['png','jpg','jpeg'])], verbose_name=('Product Image Four'), null=True, blank=True)
     prodImageUrl = models.URLField(null=True)
  
     class Meta:
@@ -26,7 +30,6 @@ class Product(models.Model):
 class Rating(models.Model):
     rateProduct=models.ForeignKey(Product, on_delete=models.CASCADE)        
     rateCustomer=models.ForeignKey(User, on_delete=models.CASCADE)
-    
     rateRating=models.FloatField(default=0.0, validators=[MinValueValidator(0.0, "Rating must be at least 0.0"), MaxValueValidator(5.0, "Rating cannot exceed 5.0")], verbose_name=('Rate'))        
     rateSubject=models.CharField(max_length=2000)        
     rateReview=models.TextField(max_length=2000,blank=True)        
@@ -36,7 +39,7 @@ class Rating(models.Model):
 
 class ProductImage(models.Model):
     prodImgsForProduct = models.ForeignKey(Product, on_delete=models.CASCADE, default=None, verbose_name=('Product'))
-    prodImages = models.FileField(upload_to='product/',  validators=[FileExtensionValidator(['png','jpg','jpeg'])], verbose_name=('Product Images'))
+    prodImage = models.FileField(upload_to='product/',  validators=[FileExtensionValidator(['png','jpg','jpeg'])], verbose_name=('Product Images'))
     class Meta:
         verbose_name = ("Product Image")
         verbose_name_plural = ("Product Images")
