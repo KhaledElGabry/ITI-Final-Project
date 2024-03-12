@@ -92,7 +92,7 @@ class ProductSerializer(serializers.ModelSerializer):
         product.prodDescription=validated_data['prodDescription']
         product.prodSubCategory=validated_data['prodSubCategory']
         product.prodStock=validated_data['prodStock']
-        product.prodOnSale=validated_data['prodOnSale']
+        # product.prodOnSale=validated_data['prodOnSale']
         product.prodImageThumbnail = validated_data['prodImageThumbnail']
         product.prodImageOne = validated_data['prodImageOne']
         product.prodImageTwo = validated_data['prodImageTwo']
@@ -100,14 +100,18 @@ class ProductSerializer(serializers.ModelSerializer):
         product.prodImageFour = validated_data['prodImageFour']
         # product.prodUploadedImages = validated_data['prodUploadedImages']
 
-         
+
         product = Product.objects.create(**validated_data)
+
 
         product.save()
         return product    
-      
+    
 
   def update(self, instance, validated_data):
+
+
+
       instance.prodName = validated_data.get('prodName', instance.prodName)
       instance.prodPrice = validated_data.get('prodPrice', instance.prodPrice)
       instance.prodDescription = validated_data.get('prodDescription', instance.prodDescription)
@@ -120,6 +124,8 @@ class ProductSerializer(serializers.ModelSerializer):
       instance.prodImageThree = validated_data.get('prodImageThree', instance.prodImageThree)
       instance.prodImageFour = validated_data.get('prodImageFour', instance.prodImageFour)
       instance.prodFavorite = validated_data.get('prodFavorite', instance.prodFavorite)
+
+
 
 
       instance.save()
