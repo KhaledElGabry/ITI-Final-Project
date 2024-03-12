@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     'account.apps.AccountConfig',
     'product.apps.ProductConfig',
     'cart.apps.CartConfig',
+    'order.apps.OrderConfig',
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders',
@@ -153,3 +154,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 #         'rest_framework.authentication.BasicAuthentication',
 #     ],
 # }
+STRIPE_PUBLIC_KEY="pk_test_51Ori5DKxvLWmSwKTHhWbP8C563cxgB3hNcXmyR3ekcYPdyU72FJ5qunHFjBLc85NNFNlDoJR9Z5lGJMoFL40bGxh00oVXVBwJQ"
+STRIPE_SECRET_KEY="sk_test_51Ori5DKxvLWmSwKThggOsvo4Ayh3HrGANxSR8nIiHz7UAjH8xUsnJXZ0bYDKFU8cpYUTOuIQ3z1GCCmBCxZNh3ai000g8Tq5WG"
+SITE_URL='http://localhost:3000/'
