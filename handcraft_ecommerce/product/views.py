@@ -1,3 +1,5 @@
+import os
+from .models import Product, Category, SubCategory , Rating
 from .models import Product, Category, SubCategory
 from account.models import User
 from .serializers import ProductSerializer, CategorySerializer, SubCategorySerializer
@@ -17,7 +19,15 @@ from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.pagination import PageNumberPagination
 from .serializers import PaginatedProductSerializer
 from account.app import upload_photo,delete_photos
-import os
+from account.serializers import UserSerializer
+from django.http import HttpRequest , HttpResponse
+from functools import reduce
+import operator
+from django.db.models import Q
+from rest_framework import viewsets, mixins
+from .serializers import ProductSearchSerializer, RatingSerializer, FavoriteSerializer
+from django.http import JsonResponse
+from django.core import serializers
 
 
 
@@ -134,6 +144,19 @@ def productDetailsApi(request, id):
     return Response({'data':data})
 
 
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([permissions.IsAuthenticated])
+def vendorProductDetailsApi(request, id):
+     token = CustomToken.objects.get(user=request.user)
+     if token.expires and token.is_expired():
+            raise AuthenticationFailed({"data":"expired_token.", "message":'Please login again.'})
+     
+     vendor = get_object_or_404(User, id=id, usertype="vendor")
+     products = Product.objects.filter(prodVendor=vendor)
+     data = ProductSerializer(products, many=True).data
+     return Response({'data':data})
+
 
 
 
@@ -179,6 +202,8 @@ def productCreateVendorApi(request):
     product.prodVendor=request.user
     
     if serializer.is_valid():
+    
+    
         prod = ProductSerializer(product)
         # if user send new image
         if 'prodImageThumbnail' in request.data and request.data['prodImageThumbnail'] is not None:
@@ -294,4 +319,155 @@ def subCategoryDetailsApi(request, id):
      
      subCategoriesDetails = get_object_or_404(SubCategory, id=id)
      data = SubCategorySerializer(subCategoriesDetails).data
+
      return Response({'data':data})
+
+
+
+
+
+
+
+
+
+
+
+
+#================================ API for search =================================================================
+class AllProductSearch(viewsets.GenericViewSet, mixins.ListModelMixin):
+    queryset=Product.objects.all()
+    serializer_class = ProductSearchSerializer
+
+    def get_queryset(self):
+        text=self.request.query_params.get('query',None)
+        if not text:
+            return self.queryset
+        
+        text_seq=text.split(' ')
+        text_qs=reduce(operator.and_,
+                       (Q(prodName__icontains=x)for x in text_seq))
+        
+
+        return self.queryset.filter(text_qs)
+#================================ API for rating =================================================================
+
+#--------------------------------- averege rating ---------------------------
+def product_rat(request,id):
+    rate=Rating.objects.filter(rateProduct__id=id)
+    product=Product.objects.get(id=id)
+    sum=0
+    for i in rate:
+        sum += i.rateRating
+    result=sum/len(rate)
+    return JsonResponse({'id':product.id,'product':product.prodName,'averege Rate':result})
+
+#-------------------------------------------Rate product------------------------------------------------------
+# @api_view(['POST'])
+# @authentication_classes([TokenAuthentication])
+# @permission_classes([permissions.IsAuthenticated])
+# def submite_review(request,product_id):
+#     if request.user.usertype != "vendor":
+#          raise AuthenticationFailed({"message":'only vendor can access.'})
+         
+#     token = CustomToken.objects.get(user=request.user)
+#     if token.expires and token.is_expired():
+#             raise AuthenticationFailed({"data":"expired_token.", "message":'Please login again.'})
+    
+#     if request.method == 'POST':
+#         try:
+#             rating = Rating.objects.get(user__id=request.user.id, product__id=product_id)
+#             rating.rating = request.POST.get('rateRating')
+#             rating.subject = request.POST.get('rateSubject')
+#             rating.review = request.POST.get('rateReview')
+#             rating.save()
+#             return JsonResponse({'reviews': rating})
+#         except Rating.DoesNotExist:        
+#             rating = Rating(user=request.user, product_id=product_id)
+#             rating.rating = request.POST.get('rateRating')
+#             rating.subject = request.POST.get('rateSubject')
+#             rating.review = request.POST.get('rateReview')
+#             rating.save()
+#             return JsonResponse({'reviews': rating})
+#================================ API for favorite =================================================================
+
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([permissions.IsAuthenticated])
+def remove_from_Favorite(request,id):
+
+    if request.user.usertype == "vendor":
+         raise AuthenticationFailed({"message":'only customer can access.'})
+         
+    token = CustomToken.objects.get(user=request.user)
+    if token.expires and token.is_expired():
+            raise AuthenticationFailed({"data":"expired_token.", "message":'Please login again.'})
+    
+    product=Product.objects.get(id=id)
+    if product.prodFavorite.filter(id=request.user.id).count() > 0:
+        product.prodFavorite.remove(request.user)
+        product.save()      
+        return JsonResponse({'message': 'Product was removed from favorites.'}) 
+    return JsonResponse({})
+
+
+
+
+
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([permissions.IsAuthenticated])
+def add_to_Favorite(request,id):
+
+    if request.user.usertype == "vendor":
+         raise AuthenticationFailed({"message":'only customer can access.'})
+         
+    token = CustomToken.objects.get(user=request.user)
+    if token.expires and token.is_expired():
+            raise AuthenticationFailed({"data":"expired_token.", "message":'Please login again.'})
+    
+    product=Product.objects.get(id=id)
+    if product.prodFavorite.filter(id=request.user.id).count() == 0:
+        product.prodFavorite.add(request.user) 
+        product.save()
+        return JsonResponse({'message': 'Product was added to favorites.'})      
+    return JsonResponse({})
+
+
+
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([permissions.IsAuthenticated])
+def user_favorite(request):
+
+    if request.user.usertype == "vendor":
+         raise AuthenticationFailed({"message":'only customer can access.'})
+         
+    token = CustomToken.objects.get(user=request.user)
+    if token.expires and token.is_expired():
+            raise AuthenticationFailed({"data":"expired_token.", "message":'Please login again.'})
+    
+    user_favorites=Product.objects.filter(prodFavorite=request.user)
+    favorite_products_list = [{'id': product.id, 'name': product.prodName, 'price': product.prodPrice} for product in user_favorites]
+    return JsonResponse({'favorite_products': favorite_products_list})
+
+
+
+# @api_view(['POST'])
+# @authentication_classes([TokenAuthentication])
+# @permission_classes([permissions.IsAuthenticated])
+# def user_favorite(request):
+
+#     if request.user.usertype == "vendor":
+#          raise AuthenticationFailed({"message":'only customer can access.'})
+         
+#     token = CustomToken.objects.get(user=request.user)
+#     if token.expires and token.is_expired():
+#             raise AuthenticationFailed({"data":"expired_token.", "message":'Please login again.'})
+    
+#     # user_favorite_products = Product.objects.filter(prodFavorite__id=request.user.id)
+#     # favorite_products_json = serializers.serialize('json', user_favorite_products)
+#     # return JsonResponse({'favorite_products': favorite_products_json})
+
+#     user_favorites=Product.objects.filter(prodFavorite=request.user)
+#     return JsonResponse({'favorite_products': user_favorites})
+#-----------------------------------------------------------------------------

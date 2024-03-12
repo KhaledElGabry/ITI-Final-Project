@@ -1,12 +1,51 @@
 from rest_framework import serializers
-from .models import Product, Category, SubCategory, ProductImage
+from .models import Product, Category, SubCategory, ProductImage , Product , Rating , Product
 from account.serializers import UserSerializer
 
 
+class ProductSearchSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Product
+        fields=[
+            'prodVendor',
+            'prodName',
+            'prodPrice',
+            'prodDescription',
+            'prodSubCategory',
+            'prodOnSale',
+            'prodImageThumbnail',
+        ]
+
+class RatingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Rating
+        fields='__all__'
+
+class FavoriteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Product
+        fields=[
+            'prodVendor',
+            'prodName',
+            'prodPrice',
+            'prodSubCategory',
+            'prodOnSale',
+            'prodImageThumbnail',
+            'prodFavorite',
+        ]                        
+
 class CategorySerializer(serializers.ModelSerializer):
-     class Meta:
+      class Meta:
         model = Category
         fields = '__all__'
+
+      def create(self,validated_data):
+        category=Category()
+        category.cateName=validated_data['name']
+      #   category.cateParent=validated_data['price']
+        category.cateDescription=validated_data['price']
+      #   category.cateImage=validated_data['price']
+        return category
 
 
 
@@ -23,19 +62,6 @@ class ProductImageSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-      #   def create(self, validated_data):
-     
-      #    productImages=ProductImage()
-      #    productImages.prodImageProduct=validated_data['prodImageProduct']
-      #    productImages.prodImage=validated_data['prodImage']
-        
-
-
-      #    product = Product.objects.create(**validated_data)
-      #    product.save()
-      #    print(product.prodSubCategory.id)
-      #    return product    
-
 
       
 
@@ -43,6 +69,13 @@ class ProductImageSerializer(serializers.ModelSerializer):
 
 
 class ProductSerializer(serializers.ModelSerializer):
+
+
+      # prodImages = ProductImageSerializer(many=True, read_only=True)
+      # uploadedImages = serializers.ListField()
+      # child = serializers.FileField(max_length = 1000000, allow_empty_file = False, use_url = False)
+      # write_only = True 
+      
       class Meta:
          model = Product
          fields = '__all__'
@@ -51,7 +84,7 @@ class ProductSerializer(serializers.ModelSerializer):
          # prodVendor = UserSerializer()
          # prodCategory = CategorySerializer()
          # prodSubCategory = SubCategorySerializer()
-         # prodImages = ProductImageSerializer(many=True)
+
 
       def create(self, validated_data):
      
@@ -64,11 +97,19 @@ class ProductSerializer(serializers.ModelSerializer):
          product.prodStock=validated_data['prodStock']
          product.prodOnSale=validated_data['prodOnSale']
          # product.prodImages=validated_data['prodImages']
+         # uploaded_data = validated_data.pop('uploaded_images')
+         # uploadedImagesData = validated_data.pop('uploadedImages')
+        # product.prodFavorite=validated_data['prodFavorite']
 
+
+     
+         # for uploadedImages in uploadedImagesData:
+         #    newProductImage = ProductImage.objects.create(prodImgsForProduct=product, prodImages=uploadedImages)
+
+         # ProductImage.objects.bulk_create(newProductImage)
 
          product = Product.objects.create(**validated_data)
          product.save()
-         print(product.prodSubCategory.id)
          return product    
       
 
