@@ -123,7 +123,12 @@ class ProductSerializer(serializers.ModelSerializer):
       instance.prodImageTwo = validated_data.get('prodImageTwo', instance.prodImageTwo)
       instance.prodImageThree = validated_data.get('prodImageThree', instance.prodImageThree)
       instance.prodImageFour = validated_data.get('prodImageFour', instance.prodImageFour)
-      
+
+
+
+    #   instance.prodFavorite = validated_data.get('prodFavorite', instance.prodFavorite)
+
+
 
 
 
