@@ -127,11 +127,6 @@ class ProductSerializer(serializers.ModelSerializer):
 
 
     #   instance.prodFavorite = validated_data.get('prodFavorite', instance.prodFavorite)
-
-
-
-
-
       instance.save()
       return instance
       
