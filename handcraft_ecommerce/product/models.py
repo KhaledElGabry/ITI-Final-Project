@@ -4,6 +4,8 @@ from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator, FileExtensionValidator
 from account.models import User
 from datetime import datetime
+from django.utils import timezone
+
 
 class Product(models.Model):
     prodVendor = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
@@ -18,6 +20,8 @@ class Product(models.Model):
     prodImageThree = models.ImageField(upload_to='product/', default='thumbnails/no-product.png', validators=[FileExtensionValidator(['png','jpg','jpeg'])], verbose_name=('Product Image Three'), null=True, blank=True)
     prodImageFour = models.ImageField(upload_to='product/', default='thumbnails/no-product.png', validators=[FileExtensionValidator(['png','jpg','jpeg'])], verbose_name=('Product Image Four'), null=True, blank=True)
     prodImageUrl = models.URLField(null=True)
+    created_at = models.DateTimeField(default=timezone.now, verbose_name=('Created At'))
+    
  
     class Meta:
         verbose_name = ('Product')
