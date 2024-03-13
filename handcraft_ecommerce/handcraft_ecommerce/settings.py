@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'cart.apps.CartConfig',
     'order.apps.OrderConfig',
     'favourit.apps.FavouritConfig',
+    'payment.apps.PaymentConfig',
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders',
@@ -159,9 +160,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 
-STRIPE_PUBLIC_KEY="pk_test_51Ori5DKxvLWmSwKTHhWbP8C563cxgB3hNcXmyR3ekcYPdyU72FJ5qunHFjBLc85NNFNlDoJR9Z5lGJMoFL40bGxh00oVXVBwJQ"
-STRIPE_SECRET_KEY="sk_test_51Ori5DKxvLWmSwKThggOsvo4Ayh3HrGANxSR8nIiHz7UAjH8xUsnJXZ0bYDKFU8cpYUTOuIQ3z1GCCmBCxZNh3ai000g8Tq5WG"
-SITE_URL='http://localhost:3000/'
+STRIPE_PUBLIC_KEY="pk_test_51OtfXtK5Jlen45sGYD31HARTO1v6ZX6FvcJeKEXJHDZAiNTIdi89Cz0rzYBxfruotjBgzIvIRDNy7Cb4ICFKjGbe00sqYPIxWZ"
+STRIPE_SECRET_KEY="sk_test_51OtfXtK5Jlen45sGrFEBSChOPt4P8FBteMhqEQW3JsO2K1G3kz42my2yNb9nWbM3eT3WQMzWjnHhUA4aJF0yVBAq00JW0PeWPW"
+SITE_URL='http://localhost:8000/'
 
 JAZZMIN_SETTINGS = {
     # title of the window (Will default to current_admin_site.site_title if absent or None)
