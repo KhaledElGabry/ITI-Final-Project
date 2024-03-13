@@ -509,6 +509,9 @@ def submit_review(request, product_id):
                 return Response({'message': 'Product not found'}, status=404)
             
         return JsonResponse({'reviews': rating.id})
+    
+
+    
 
 #================================ API for favorite =================================================================
 
@@ -580,7 +583,7 @@ def user_favorite(request):
                                 # 'prodVendor': product.prodVendor , 
                                 'prodDescription':product.prodDescription,
                                 # 'prodDescription':product.prodSubCategory,
-                                'prodOnSale':product.prodOnSale,
+                                'prodOnSale':product.prodSubCategory,
                                 'prod in Stock':product.prodStock,
                                 # 'prodDescription':product.prodImageThumbnail,
                                 'prod Image':product.prodImageUrl,
