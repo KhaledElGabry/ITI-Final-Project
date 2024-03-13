@@ -90,59 +90,7 @@ class CustomPagination(PageNumberPagination):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def productListApi(request):
-    try:
-        token = CustomToken.objects.get(user=request.user)
-        if token.expires and token.is_expired():
-            raise AuthenticationFailed({"data": "expired_token.", "message": 'Please login again.'})
-        
-        products = Product.objects.all()
-        
-        # Pagination
-        limit = request.query_params.get('limit')
-        skip = request.query_params.get('skip')
-        
-        if limit is not None:
-            try:
-                limit = int(limit)
-                if limit < 0:
-                    limit = None
-            except ValueError:
-                limit = None
-        
-        if skip is not None:
-            try:
-                skip = int(skip)
-                if skip < 0:
-                    skip = None
-            except ValueError:
-                skip = None
-        
-        if skip:
-            products = products[skip:]
-        
-        paginator = Paginator(products, limit)
-        page_number = request.query_params.get('page', 1)
-        page_obj = paginator.get_page(page_number)
-        
-        # Serialize products with vendor data
-        product_data = []
-        for product in page_obj:
-            product_serializer = ProductSerializer(product)
-            vendor_data = UserSerializer(product.prodVendor).data
-            product_data.append({
-                "product": product_serializer.data,
-                "vendor": vendor_data
-            })
-        
-        # Return paginated product data
-        return Response({
-            "count": paginator.count,
-            "next": page_obj.next_page_number() if page_obj.has_next() else None,
-            "previous": page_obj.previous_page_number() if page_obj.has_previous() else None,
-            "results": product_data
-        })
-    except CustomToken.DoesNotExist:
-        raise AuthenticationFailed({"data": "invalid_token.", "message": 'Token is invalid or expired.'})
+    pass
     
     
     
@@ -157,6 +105,7 @@ def productDetailsApi(request, id):
         raise AuthenticationFailed({"data":"expired_token.", "message":'Please login again.'})
     productDetails = Product.objects.get(id=id)
     data = ProductSerializer(productDetails).data
+    data["prodVendor"]= UserSerializer(User.objects.get(id=data["prodVendor"])).data
     return Response({'data':data})
 
 
@@ -282,12 +231,49 @@ def productUpdateDeleteApi(request, id):
     if request.method == 'PUT':
         # PUT: Update the existing product belonging to the authenticated vendor
         serializer = ProductSerializer(product, data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response({"product": serializer.data}, status=status.HTTP_200_OK)
+        if serializer.is_valid():
+            serializer.save()
+
+            # if user send new image
+            if 'prodImageThumbnail' in request.data and request.data['prodImageThumbnail'] is not None:
+                
+                # if user has already image on drive
+                if serializer.validated_data.get('prodImageThumbnail') is not None:
+                    delete_photos(f"{product.id}.png", "1bzm8Xuenx4NVyxmJUTV6n5mpmbFrVqg1")
+                           
+                # upload new image
+                media_folder = os.path.join(os.getcwd(), "media/product")
+                # save new url
+                Url_Image = upload_photo(os.path.join(media_folder, os.path.basename(serializer['prodImageThumbnail'].value)),f"{product.id}.png", "1bzm8Xuenx4NVyxmJUTV6n5mpmbFrVqg1")
+                product.prodImageUrl = Url_Image
+                product.save()
+                
+                # remove image from server
+                if os.path.exists(media_folder):
+                    for file_name in os.listdir(media_folder):
+                        file_path = os.path.join(media_folder, file_name)
+                        try:
+                            if os.path.isfile(file_path):
+                                os.remove(file_path)
+                                print(f"Deleted: {file_path}")
+                            else:
+                                print(f"Skipped: {file_path} (not a file)")
+                        except Exception as e:
+                            print(f"Error deleting {file_path}: {e}")
+                else:
+                    print("Folder does not exist.")
+
+            product = Product.objects.get(id=id)
+            serializer = ProductSerializer(product)
+            return Response({'message': 'Product Updated Successfully', "product":serializer.data}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     elif request.method == 'DELETE':
         # DELETE: Delete the existing product belonging to the authenticated vendor
+        try:
+            delete_photos(f"{product.id}.png", "1bzm8Xuenx4NVyxmJUTV6n5mpmbFrVqg1")
+        except Exception as e:  
+            print(f"Error in deleting image of product {product.id}.png from drive")
         product.delete()
         return Response({'message': 'Product deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
 
