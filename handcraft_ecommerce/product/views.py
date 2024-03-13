@@ -29,6 +29,12 @@ from rest_framework import viewsets , mixins
 from .serializers import ProductSearchSerializer , Ratingserializer ,FavoriteSerializer
 from django.http import JsonResponse
 from django.core import serializers
+from chatterbot import ChatBot
+from chatterbot.trainers import ListTrainer , ChatterBotCorpusTrainer
+import time
+from django.views.decorators.csrf import csrf_exempt
+from django.core.exceptions import ObjectDoesNotExist
+
 
 # Products Pagination
 class CustomPagination(PageNumberPagination):
@@ -80,7 +86,8 @@ class CustomPagination(PageNumberPagination):
 
 
 
-# Products List and Details API's
+
+# Products List and Details API's and Paginator 
 
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
@@ -145,13 +152,8 @@ def productDetailsApi(request, id):
 
 
 
-
-
-
-
-
-
 # List all Products that belonging to the specified Vendor
+
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([permissions.IsAuthenticated])
@@ -202,7 +204,7 @@ def productCreateVendorApi(request):
                 media_folder = os.path.join(os.getcwd(), "media/product")
                 # save new url
                 Url_Image = upload_photo(os.path.join(media_folder, os.path.basename(serializer['prodImageThumbnail'].value)),f"{product.id}.png", "1bzm8Xuenx4NVyxmJUTV6n5mpmbFrVqg1")
-                product.imageUrl = Url_Image
+                product.prodImageUrl = Url_Image
                 product.save()
                 
                 # remove image from server
@@ -319,7 +321,6 @@ def subCategoryDetailsApi(request, id):
 
 
 
-
 #================================ API for search =================================================================
 class AllProductSearch(viewsets.GenericViewSet, mixins.ListModelMixin):
     queryset=Product.objects.all()
@@ -349,32 +350,38 @@ def product_rat(request,id):
     return JsonResponse({'id':product.id,'product':product.prodName,'averege Rate':result})
 
 #-------------------------------------------Rate product------------------------------------------------------
-# @api_view(['POST'])
-# @authentication_classes([TokenAuthentication])
-# @permission_classes([permissions.IsAuthenticated])
-# def submite_review(request,product_id):
-#     if request.user.usertype != "vendor":
-#          raise AuthenticationFailed({"message":'only vendor can access.'})
-         
-#     token = CustomToken.objects.get(user=request.user)
-#     if token.expires and token.is_expired():
-#             raise AuthenticationFailed({"data":"expired_token.", "message":'Please login again.'})
+
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([permissions.IsAuthenticated])
+@csrf_exempt
+def submit_review(request, product_id):
+    if request.user.usertype == "vendor":
+        raise AuthenticationFailed({"message": 'only customer can access.'})
     
-#     if request.method == 'POST':
-#         try:
-#             rating = Rating.objects.get(user__id=request.user.id, product__id=product_id)
-#             rating.rating = request.POST.get('rateRating')
-#             rating.subject = request.POST.get('rateSubject')
-#             rating.review = request.POST.get('rateReview')
-#             rating.save()
-#             return JsonResponse({'reviews': rating})
-#         except Rating.DoesNotExist:        
-#             rating = Rating(user=request.user, product_id=product_id)
-#             rating.rating = request.POST.get('rateRating')
-#             rating.subject = request.POST.get('rateSubject')
-#             rating.review = request.POST.get('rateReview')
-#             rating.save()
-#             return JsonResponse({'reviews': rating})
+    token = CustomToken.objects.get(user=request.user)
+    if token.expires and token.is_expired():
+        raise AuthenticationFailed({"data": "expired_token.", "message": 'Please login again.'})
+    
+    if request.method == 'POST':
+        try:
+            rating = Rating.objects.get(rateCustomer=request.user, rateProduct__id=product_id)
+            rating.rateRating = request.data.get('rateRating')
+            rating.rateSubject = request.data.get('rateSubject')
+            rating.rateReview = request.data.get('rateReview')
+            rating.save()
+        except Rating.DoesNotExist:
+            try:
+                product = Product.objects.get(id=product_id)
+                rating = Rating.objects.create(rateCustomer=request.user, rateProduct=product,
+                                               rateRating=request.data.get('rateRating'),
+                                               rateSubject=request.data.get('rateSubject'),
+                                               rateReview=request.data.get('rateReview'))
+            except ObjectDoesNotExist:
+                return Response({'message': 'Product not found'}, status=404)
+            
+        return JsonResponse({'reviews': rating.id})
+
 #================================ API for favorite =================================================================
 
 @api_view(['POST'])
@@ -398,26 +405,29 @@ def remove_from_Favorite(request,id):
 
 
 
-
-
 @api_view(['POST'])
 @authentication_classes([TokenAuthentication])
-@permission_classes([permissions.IsAuthenticated])
-def add_to_Favorite(request,id):
+@permission_classes([IsAuthenticated])
+def add_to_Favorite(request, id):
 
     if request.user.usertype == "vendor":
-         raise AuthenticationFailed({"message":'only customer can access.'})
+         raise AuthenticationFailed({"message": 'Only customers can access.'})
          
     token = CustomToken.objects.get(user=request.user)
     if token.expires and token.is_expired():
-            raise AuthenticationFailed({"data":"expired_token.", "message":'Please login again.'})
+        raise AuthenticationFailed({"data": "expired_token.", "message": 'Please login again.'})
     
-    product=Product.objects.get(id=id)
-    if product.prodFavorite.filter(id=request.user.id).count() == 0:
-        product.prodFavorite.add(request.user) 
-        product.save()
-        return JsonResponse({'message': 'Product was added to favorites.'})      
-    return JsonResponse({})
+    try:
+        product = Product.objects.get(id=id)
+    except ObjectDoesNotExist:
+        return JsonResponse({'error': 'Product does not exist'}, status=404)
+
+    if product.prodFavorite.filter(id=request.user.id).exists():
+        return JsonResponse({'message': 'Product is already in favorites.'})
+
+    product.prodFavorite.add(request.user)
+    product.save()
+    return JsonResponse({'message': 'Product was added to favorites.'})
 
 
 
@@ -434,27 +444,62 @@ def user_favorite(request):
             raise AuthenticationFailed({"data":"expired_token.", "message":'Please login again.'})
     
     user_favorites=Product.objects.filter(prodFavorite=request.user)
-    favorite_products_list = [{'id': product.id, 'name': product.prodName, 'price': product.prodPrice} for product in user_favorites]
+    # favSer=FavoriteSerializer
+    favorite_products_list = [{
+                                'id': product.id,
+                                'name': product.prodName,
+                                'price': product.prodPrice , 
+                                # 'prodVendor': product.prodVendor , 
+                                'prodDescription':product.prodDescription,
+                                # 'prodDescription':product.prodSubCategory,
+                                'prodOnSale':product.prodOnSale,
+                                'prod in Stock':product.prodStock,
+                                # 'prodDescription':product.prodImageThumbnail,
+                                'prod Image':product.prodImageUrl,
+                                
+                                } for product in user_favorites]
     return JsonResponse({'favorite_products': favorite_products_list})
 
-
-
-# @api_view(['POST'])
-# @authentication_classes([TokenAuthentication])
-# @permission_classes([permissions.IsAuthenticated])
-# def user_favorite(request):
-
-#     if request.user.usertype == "vendor":
-#          raise AuthenticationFailed({"message":'only customer can access.'})
-         
-#     token = CustomToken.objects.get(user=request.user)
-#     if token.expires and token.is_expired():
-#             raise AuthenticationFailed({"data":"expired_token.", "message":'Please login again.'})
+#==========================================================Chat Bot====================================================
+bot = ChatBot(
+    'chatbot',
+    read_only=False,
+    logic_adapters=[
+        {
+            'import_path': 'chatterbot.logic.BestMatch',
+            'default_response': 'Sorry, I don\'t understand.',
+            'maximum_similarity_threshold': 0.90
+        }
+    ]
+)
+list_to_train = [
+   
+   
+    "Hello",
+    "Hello,friend",
+     
+    "could you explain to me this website",
+    "this website for handmade , the seller will display the product on website, and you have the option to choose one of the products you like",
     
-#     # user_favorite_products = Product.objects.filter(prodFavorite__id=request.user.id)
-#     # favorite_products_json = serializers.serialize('json', user_favorite_products)
-#     # return JsonResponse({'favorite_products': favorite_products_json})
+    "how can i buy",
+    "first you need to register as a customer then search for the product after that choose it , pay the amount and it will reach to you on time",
+    
+    "how to know the quality of this product",
+    "there is an averege review for each product and also after you get the product you can submit a review",
+    
+    "i need to display my product", 
+    "register on website as a vendor , fillout you data , you will be able to find add products , click on it and you will be able to add any products that you need", 
+     
+    
+]
+list_trainer = ListTrainer(bot)
+list_trainer.train(list_to_train)
 
-#     user_favorites=Product.objects.filter(prodFavorite=request.user)
-#     return JsonResponse({'favorite_products': user_favorites})
-#-----------------------------------------------------------------------------
+@csrf_exempt
+def get_response(request):
+    user_message = request.POST.get('userMessage')
+    if user_message:
+        chat_response = str(bot.get_response(user_message))
+    else:
+        chat_response = "Please provide a 'userMessage' parameter."
+    return JsonResponse({'response': chat_response})

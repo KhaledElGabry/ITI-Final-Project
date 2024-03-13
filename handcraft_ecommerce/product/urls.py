@@ -14,14 +14,16 @@ urlpatterns = [
 
 
 
-     # product list & details API's (FunctionBasedView)
+     # Product list & details API's 
      path('', views.productListApi, name='productListApi'),
      path('details/<int:id>/', views.productDetailsApi, name='productDetailsApi'),
 
-     # vendor API's (FunctionBasedView)
+
+     # Vendor CRUD Operations API's 
      path('vendor/', views.productVendorApi, name='productVendorApi'), 
      path('create/', views.productCreateVendorApi, name='productCreateVendorApi'),
      path('<int:id>/', views.productUpdateDeleteApi, name='productUpdateDeleteApi'),
+
 
 
      # category API's (FunctionBasedView)
@@ -39,7 +41,11 @@ urlpatterns = [
 
      #  rating 
      path('product_r/<int:id>/',views.product_rat),
-     path('submit_review/<int:product_id>/', views.submite_review, name='submit_review'),
+     path('submit_review/<int:product_id>/', views.submit_review, name='submit_review'),
+
+     # chatbot
+     path('getResponse/',views.get_response,name='getResponse/'),
+
 
      # all product url for search bar
      path('',include(router.urls)),
