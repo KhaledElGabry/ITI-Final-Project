@@ -95,7 +95,6 @@ def productListApi(request):
     
     
     
-    
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([permissions.IsAuthenticated])
