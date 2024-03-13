@@ -97,25 +97,46 @@ def productListApi(request):
         
         products = Product.objects.all()
         
+       
         # Pagination
-        limit = request.query_params.get('limit')
-        skip = request.query_params.get('skip')
-        
-        if limit is not None:
+        default_limit = 10  # Set a default limit value
+        try:
+            limit = int(request.query_params.get('limit', default_limit))
+            if limit < 0:
+                limit = None  # Set limit to None if negative
+        except ValueError:
+            limit = None  # Set limit to None for invalid values
+
+        # Get skip (handle potential None value)
+        skip_value = request.query_params.get('skip')  # Use a temporary variable
+        if skip_value:  # Check if skip exists before conversion
             try:
-                limit = int(limit)
-                if limit < 0:
-                    limit = None
-            except ValueError:
-                limit = None
-        
-        if skip is not None:
-            try:
-                skip = int(skip)
+                skip = int(skip_value)
                 if skip < 0:
-                    skip = None
+                    skip = None  # Set skip to None if negative
             except ValueError:
-                skip = None
+                skip = None  # Set skip to None for invalid values
+        else:
+            skip = None  # Explicitly set skip to None if not provided
+            
+        # limit = request.query_params.get('limit')
+        # skip = request.query_params.get('skip')
+        
+        # if limit is not None:
+        #     try:
+        #         limit = int(limit)
+        #         if limit < 0:
+        #             limit = None
+        #     except ValueError:
+        #         limit = None
+        
+        # if skip is not None:
+        #     try:
+        #         skip = int(skip)
+        #         if skip < 0:
+        #             skip = None
+        #     except ValueError:
+        #         skip = None
         
         if skip:
             products = products[skip:]
@@ -129,12 +150,17 @@ def productListApi(request):
         for product in page_obj:
             product_serializer = ProductSerializer(product)
             vendor_data = UserSerializer(product.prodVendor).data
+            prodSubCategory = product.prodSubCategory
+            prodSubCategory_data = None
+            if prodSubCategory:
+                prodSubCategory_data = SubCategorySerializer(prodSubCategory).data
+
             product_data.append({
                 "product": product_serializer.data,
-                "vendor": vendor_data
+                "vendor": vendor_data,
+                "prodSubCategory": prodSubCategory_data  
             })
-        
-        # Return paginated product data
+
         return Response({
             "count": paginator.count,
             "next": page_obj.next_page_number() if page_obj.has_next() else None,
@@ -144,8 +170,10 @@ def productListApi(request):
     except CustomToken.DoesNotExist:
         raise AuthenticationFailed({"data": "invalid_token.", "message": 'Token is invalid or expired.'})
     
-    
-    
+
+
+
+# Products Details API
     
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
@@ -155,9 +183,11 @@ def productDetailsApi(request, id):
     if token.expires and token.is_expired():
         raise AuthenticationFailed({"data":"expired_token.", "message":'Please login again.'})
     productDetails = Product.objects.get(id=id)
+    prodSubCategory = productDetails.prodSubCategory
     data = ProductSerializer(productDetails).data
     data["prodVendor"]= UserSerializer(User.objects.get(id=data["prodVendor"])).data
-    return Response({'data':data})
+    data["prodSubCategory"] = SubCategorySerializer(prodSubCategory).data
+    return Response({'data':data})   
 
 
 @api_view(['GET'])
@@ -193,6 +223,8 @@ def productVendorApi(request):
     vendorProducts = Product.objects.filter(prodVendor=vendor)
     serializer = ProductSerializer(vendorProducts, many=True)
     return Response(serializer.data)
+
+
 
 
 
@@ -253,6 +285,7 @@ def productCreateVendorApi(request):
         return Response({"product" : prod.data}, status=status.HTTP_201_CREATED)
     
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 
