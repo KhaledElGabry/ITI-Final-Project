@@ -17,7 +17,7 @@ urlpatterns = [
      # Product list & details API's 
      path('', views.productListApi, name='productListApi'),
      path('details/<int:id>/', views.productDetailsApi, name='productDetailsApi'),
-     path('vendor/<int:id>/', views.vendorProductDetailsApi, name='productDetailsApi'),
+     path('vendor/<int:id>/', views.vendorProductDetailsApi, name='vendorProductDetailsApi'),
 
 
 
