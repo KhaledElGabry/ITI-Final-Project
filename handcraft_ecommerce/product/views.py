@@ -174,6 +174,24 @@ def productListApi(request):
 
 
 # Products Details API
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([permissions.IsAuthenticated])
+def lastProducts(request):
+    token = CustomToken.objects.get(user=request.user)
+    if token.expires and token.is_expired():
+        raise AuthenticationFailed({"data":"expired_token.", "message":'Please login again.'})
+
+    products = Product.objects.order_by('-created_at')[:10]
+    data = ProductSerializer(products, many=True).data
+    for product in data:
+        try:
+            vendor_data = UserSerializer(User.objects.get(id=product["prodVendor"])).data
+            product["prodVendor"] = vendor_data
+        except User.DoesNotExist:
+            product["prodVendor"] = None
+            
+    return Response({'data':data})
     
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
@@ -272,8 +290,10 @@ def productCreateVendorApi(request):
                         file_path = os.path.join(media_folder, file_name)
                         try:
                             if os.path.isfile(file_path):
-                                os.remove(file_path)
-                                print(f"Deleted: {file_path}")
+                                if file_name == serializer['prodImageThumbnail'].value:
+                                    os.remove(file_path)
+                                    print(f"Deleted: {file_path}")
+                                    break
                             else:
                                 print(f"Skipped: {file_path} (not a file)")
                         except Exception as e:
