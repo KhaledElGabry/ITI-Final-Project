@@ -4,6 +4,8 @@ from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator, FileExtensionValidator
 from account.models import User
 from datetime import datetime
+from django.utils import timezone
+
 
 class Product(models.Model):
     prodVendor = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
@@ -11,20 +13,20 @@ class Product(models.Model):
     prodPrice = models.DecimalField(default=0, decimal_places=2, max_digits=8, verbose_name=('Product Price'))
     prodDescription = models.TextField(max_length=450, default='', blank=True, null=True, verbose_name=('Product Description'))
     prodSubCategory = models.ForeignKey('SubCategory', on_delete=models.CASCADE, default=1, verbose_name=('Sub Category Name'),)
-    prodOnSale = models.BooleanField(default=False, verbose_name=('On Sale'))
     prodStock = models.IntegerField(default=0, verbose_name=('On Stock'))
     prodImageThumbnail = models.ImageField(upload_to='product/', default='thumbnails/no-product.png', validators=[FileExtensionValidator(['png','jpg','jpeg'])], verbose_name=('Image Thumbnail'), null=True, blank=True)
+    prodImageOne = models.ImageField(upload_to='product/', default='thumbnails/no-product.png', validators=[FileExtensionValidator(['png','jpg','jpeg'])], verbose_name=('Product Image One'), null=True, blank=True)
+    prodImageTwo = models.ImageField(upload_to='product/', default='thumbnails/no-product.png', validators=[FileExtensionValidator(['png','jpg','jpeg'])], verbose_name=('Product Image Two'), null=True, blank=True)
+    prodImageThree = models.ImageField(upload_to='product/', default='thumbnails/no-product.png', validators=[FileExtensionValidator(['png','jpg','jpeg'])], verbose_name=('Product Image Three'), null=True, blank=True)
+    prodImageFour = models.ImageField(upload_to='product/', default='thumbnails/no-product.png', validators=[FileExtensionValidator(['png','jpg','jpeg'])], verbose_name=('Product Image Four'), null=True, blank=True)
     prodImageUrl = models.URLField(null=True)
-    prodFavorite=models.ManyToManyField(User,related_name="Favorite",blank=True,verbose_name=('favorite'))
-
+    created_at = models.DateTimeField(default=timezone.now, verbose_name=('Created At'))
+    
+ 
     class Meta:
         verbose_name = ('Product')
         verbose_name_plural = ('Products')
 
-     # def save(self, *args, **kwargs):
-     #      if not self.prodSlug:
-     #           self.prodSlug = slugify(self.prodName)
-     #      super(Product, self).save(*args, **kwargs)
           
         def __str__(self):
           return self.prodName
@@ -32,7 +34,6 @@ class Product(models.Model):
 class Rating(models.Model):
     rateProduct=models.ForeignKey(Product, on_delete=models.CASCADE)        
     rateCustomer=models.ForeignKey(User, on_delete=models.CASCADE)
-    
     rateRating=models.FloatField(default=0.0, validators=[MinValueValidator(0.0, "Rating must be at least 0.0"), MaxValueValidator(5.0, "Rating cannot exceed 5.0")], verbose_name=('Rate'))        
     rateSubject=models.CharField(max_length=2000)        
     rateReview=models.TextField(max_length=2000,blank=True)        
@@ -41,15 +42,16 @@ class Rating(models.Model):
 
 
 class ProductImage(models.Model):
-    prodImageProduct = models.ForeignKey(Product, on_delete=models.CASCADE, default=None, verbose_name=('Product'))
-    prodImage = models.ImageField(upload_to='product/', validators=[FileExtensionValidator(['png','jpg','jpeg'])], verbose_name=('Product Images'))
-
+    prodImgsForProduct = models.ForeignKey(Product, on_delete=models.CASCADE, default=None, verbose_name=('Product'))
+    prodImage = models.FileField(upload_to='product/',  validators=[FileExtensionValidator(['png','jpg','jpeg'])], verbose_name=('Product Images'))
     class Meta:
         verbose_name = ("Product Image")
         verbose_name_plural = ("Product Images")
 
     def __str__(self):
         return str(self.prodImage)
+
+
 
 class Category(models.Model):
     cateName = models.CharField(max_length=50, verbose_name=('Category Name'))
@@ -76,18 +78,3 @@ class SubCategory(models.Model):
     def __str__(self):
         return self.subCateName
 
-
-# class Order(models.Model):
-#     ordCustomer = models.ForeignKey(User, on_delete=models.CASCADE, null=True, verbose_name=('Customer Name'))
-#     ordTime = models.DateTimeField(auto_now_add=True, verbose_name=('Order Submitted Time'))
-#     ordQuantity = models.IntegerField(default=1, verbose_name=('Order Quantity'))
-
-     
-       
-     
-# class OrderItems(models.Model):
-#     ordItmOrder = models.ForeignKey(Order,  on_delete=models.CASCADE, null=True)
-#     ordProduct = models.ForeignKey(Product,  on_delete=models.CASCADE, null=True)
-     
-#     def __str__(self):
-#         return self.ordProduct.prodName

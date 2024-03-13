@@ -35,6 +35,9 @@ INSTALLED_APPS = [
     'account.apps.AccountConfig',
     'product.apps.ProductConfig',
     'cart.apps.CartConfig',
+    'order.apps.OrderConfig',
+    'favourit.apps.FavouritConfig',
+    'payment.apps.PaymentConfig',
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders',
@@ -155,33 +158,40 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 #     ],
 # }
 
+
+
+STRIPE_PUBLIC_KEY="pk_test_51OtfXtK5Jlen45sGYD31HARTO1v6ZX6FvcJeKEXJHDZAiNTIdi89Cz0rzYBxfruotjBgzIvIRDNy7Cb4ICFKjGbe00sqYPIxWZ"
+STRIPE_SECRET_KEY="sk_test_51OtfXtK5Jlen45sGrFEBSChOPt4P8FBteMhqEQW3JsO2K1G3kz42my2yNb9nWbM3eT3WQMzWjnHhUA4aJF0yVBAq00JW0PeWPW"
+SITE_URL='http://localhost:8000/'
+
 JAZZMIN_SETTINGS = {
     # title of the window (Will default to current_admin_site.site_title if absent or None)
-    "site_title": "Hand Craft",
+    "site_title": "HandCraft",
 
     # Title on the login screen (19 chars max) (defaults to current_admin_site.site_header if absent or None)
-    "site_header": "Hand Craft",
+    "site_header": "Admin HandCraft E-C",
 
     # Title on the brand (19 chars max) (defaults to current_admin_site.site_header if absent or None)
-    "site_brand": "Library",
+    "site_brand": "",
 
     # Logo to use for your site, must be present in static files, used for brand on top left
-    "site_logo": "Photo\24\02\24\Dodge-Viper-11_2.jpg",
+    "site_logo": "",
 
     # Logo to use for your site, must be present in static files, used for login form logo (defaults to site_logo)
-    "login_logo": None,
+    "login_logo": "",
 
     # Logo to use for login form in dark themes (defaults to login_logo)
-    "login_logo_dark": None,
+    "login_logo_dark": "",
 
     # CSS classes that are applied to the logo above
     "site_logo_classes": "",
 
     # Relative path to a favicon for your site, will default to site_logo if absent (ideally 32x32 px)
-    "site_icon": None,
+    "site_icon": "logo.jpg",
 
     # Welcome text on the login screen
     "welcome_sign": "Welcome to Hand Craft",
+    "welcome_sign": "Welcome to HandCraft E-Commerce Site",
 
     # Copyright on the footer
     "copyright": "Hand Craft",

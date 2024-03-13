@@ -15,8 +15,12 @@ urlpatterns = [
 
 
      # Product list & details API's 
-     path('', views.productListApi, name='productListApi'),
+     path('', views.productListApi, name='productListApi'), 
      path('details/<int:id>/', views.productDetailsApi, name='productDetailsApi'),
+     path('vendor/<int:id>/', views.vendorProductDetailsApi, name='vendorProductDetailsApi'),
+     path('lastProducts/', views.lastProducts, name='productDetailsApi'),
+
+
 
 
      # Vendor CRUD Operations API's 
@@ -34,6 +38,7 @@ urlpatterns = [
      path('subcategory/', views.subCategoryListApi, name='subCategoryListApi'),
      path('subcategory/<int:id>/', views.subCategoryDetailsApi, name='subCategoryDetailsApi'),
 
+ 
      # favorite prod
     path('add_to_Favorite/<int:id>/',views.add_to_Favorite, name='add_to_Favorite'),
     path('remove_from_Favorite/<int:id>/',views.remove_from_Favorite, name='remove_from_Favorite'),
@@ -45,7 +50,6 @@ urlpatterns = [
 
      # chatbot
      path('getResponse/',views.get_response,name='getResponse/'),
-
 
      # all product url for search bar
      path('',include(router.urls)),
