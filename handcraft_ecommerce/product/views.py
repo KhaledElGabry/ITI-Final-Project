@@ -147,7 +147,6 @@ def productListApi(request):
     
     
     
-    
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([permissions.IsAuthenticated])
@@ -157,6 +156,7 @@ def productDetailsApi(request, id):
         raise AuthenticationFailed({"data":"expired_token.", "message":'Please login again.'})
     productDetails = Product.objects.get(id=id)
     data = ProductSerializer(productDetails).data
+    data["prodVendor"]= UserSerializer(User.objects.get(id=data["prodVendor"])).data
     return Response({'data':data})
 
 
@@ -282,12 +282,49 @@ def productUpdateDeleteApi(request, id):
     if request.method == 'PUT':
         # PUT: Update the existing product belonging to the authenticated vendor
         serializer = ProductSerializer(product, data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response({"product": serializer.data}, status=status.HTTP_200_OK)
+        if serializer.is_valid():
+            serializer.save()
+
+            # if user send new image
+            if 'prodImageThumbnail' in request.data and request.data['prodImageThumbnail'] is not None:
+                
+                # if user has already image on drive
+                if serializer.validated_data.get('prodImageThumbnail') is not None:
+                    delete_photos(f"{product.id}.png", "1bzm8Xuenx4NVyxmJUTV6n5mpmbFrVqg1")
+                           
+                # upload new image
+                media_folder = os.path.join(os.getcwd(), "media/product")
+                # save new url
+                Url_Image = upload_photo(os.path.join(media_folder, os.path.basename(serializer['prodImageThumbnail'].value)),f"{product.id}.png", "1bzm8Xuenx4NVyxmJUTV6n5mpmbFrVqg1")
+                product.prodImageUrl = Url_Image
+                product.save()
+                
+                # remove image from server
+                if os.path.exists(media_folder):
+                    for file_name in os.listdir(media_folder):
+                        file_path = os.path.join(media_folder, file_name)
+                        try:
+                            if os.path.isfile(file_path):
+                                os.remove(file_path)
+                                print(f"Deleted: {file_path}")
+                            else:
+                                print(f"Skipped: {file_path} (not a file)")
+                        except Exception as e:
+                            print(f"Error deleting {file_path}: {e}")
+                else:
+                    print("Folder does not exist.")
+
+            product = Product.objects.get(id=id)
+            serializer = ProductSerializer(product)
+            return Response({'message': 'Product Updated Successfully', "product":serializer.data}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     elif request.method == 'DELETE':
         # DELETE: Delete the existing product belonging to the authenticated vendor
+        try:
+            delete_photos(f"{product.id}.png", "1bzm8Xuenx4NVyxmJUTV6n5mpmbFrVqg1")
+        except Exception as e:  
+            print(f"Error in deleting image of product {product.id}.png from drive")
         product.delete()
         return Response({'message': 'Product deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
 
