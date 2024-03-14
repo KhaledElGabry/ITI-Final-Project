@@ -485,9 +485,9 @@ def allRateForProduct(request, id):
                 'rating': rating.rateRating,
                 'subject': rating.rateSubject,
                 'review': rating.rateReview,
-                'first_name of user': user.first_name,
-                'last_name of user': user.last_name,
-                'image_url of user': user_image_url,  # Include the image URL instead of the ImageFieldFile object
+                'first_name_of_user': user.first_name,
+                'last_name_of_user': user.last_name,
+                'image_url_of_user': user_image_url,  # Include the image URL instead of the ImageFieldFile object
             })
 
         return JsonResponse({'product': product.prodName, 'ratings': productRatings})
