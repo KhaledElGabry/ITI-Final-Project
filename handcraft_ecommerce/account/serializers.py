@@ -97,3 +97,9 @@ class UserSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError("Shopname is required for vendor.")
         
         return data
+
+class ChangePasswordSerializer(serializers.Serializer):
+    class Meta:
+        model = User
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)

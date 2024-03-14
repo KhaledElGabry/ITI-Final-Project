@@ -35,6 +35,8 @@ from django.core.paginator import Paginator
 # import time
 from django.views.decorators.csrf import csrf_exempt
 from django.core.exceptions import ObjectDoesNotExist
+from rest_framework.exceptions import NotFound
+
 
 
 # Products Pagination
@@ -464,16 +466,76 @@ class AllProductSearch(viewsets.GenericViewSet, mixins.ListModelMixin):
         return self.queryset.filter(text_qs)
 #================================ API for rating =================================================================
 
+#---------------------------------- showing all rating for specific product -------------------------------------
+def allRateForProduct(request, id):
+    try:
+        product = Product.objects.get(id=id)
+        ratings = Rating.objects.filter(rateProduct_id=id)
+        
+        if not ratings:
+            return JsonResponse({'error': 'Product has no ratings'}, status=404)
+        
+        productRatings = [{
+            'rating': rating.rateRating,
+            'subject': rating.rateSubject,
+            'review': rating.rateReview
+        } for rating in ratings]
+        
+        return JsonResponse({'product': product.prodName, 'ratings': productRatings})
+    
+    except Product.DoesNotExist:
+        return JsonResponse({'error': 'Product does not exist'})
+    
+
 #--------------------------------- averege rating ---------------------------
 def product_rat(request,id):
-    rate=Rating.objects.filter(rateProduct__id=id)
-    product=Product.objects.get(id=id)
-    sum=0
+#     rate=Rating.objects.filter(rateProduct__id=id)
+#     product=Product.objects.get(id=id)
+#     sum=0
+#     for i in rate:
+#         sum += i.rateRating  
+#     result=sum/len(rate)
+#     return JsonResponse({'id':product.id,'product':product.prodName,'averege Rate':result})
+    
+    try:
+        product = Product.objects.get(id=id)
+    except ObjectDoesNotExist:
+        return JsonResponse({'error': 'Product does not exist'}, status=404)
+    
+    rate = Rating.objects.filter(rateProduct__id=id)
+    sum = 0
     for i in rate:
         sum += i.rateRating
-    result=sum/len(rate)
-    return JsonResponse({'id':product.id,'product':product.prodName,'averege Rate':result})
+    
+    if len(rate) > 0:
+        result = sum / len(rate)
+    else:
+        result = 0  
 
+    return JsonResponse({'id': product.id, 'product': product.prodName, 'average_Rate': result})
+#----------------------------------- Top Rating ------------------------------
+
+def top_rating(request):
+    ratings = Rating.objects.all()
+
+    product_ratings = {}
+
+    for rating in ratings:
+        prod_id = rating.rateProduct.id
+        rating_value = rating.rateRating  
+        if prod_id not in product_ratings:
+            product_ratings[prod_id] = [rating_value]
+        else:
+            product_ratings[prod_id].append(rating_value)
+
+    for prod_id, ratings_list in product_ratings.items():
+        average_rating = sum(ratings_list) / len(ratings_list)
+        product_ratings[prod_id] = average_rating
+
+    top_rated_products = sorted(product_ratings.items(), key=lambda x: x[1], reverse=True)
+
+    return JsonResponse({'top_rated_products':top_rated_products})
+        
 #-------------------------------------------Rate product------------------------------------------------------
 
 @api_view(['POST'])
@@ -495,6 +557,7 @@ def submit_review(request, product_id):
             rating.rateSubject = request.data.get('rateSubject')
             rating.rateReview = request.data.get('rateReview')
             rating.save()
+            return JsonResponse({'Message': 'Product Rate was Updated'})
         except Rating.DoesNotExist:
             try:
                 product = Product.objects.get(id=product_id)
@@ -502,6 +565,7 @@ def submit_review(request, product_id):
                                                rateRating=request.data.get('rateRating'),
                                                rateSubject=request.data.get('rateSubject'),
                                                rateReview=request.data.get('rateReview'))
+                return JsonResponse({'Message': 'Product Rate was added succesfully'})
             except ObjectDoesNotExist:
                 return Response({'message': 'Product not found'}, status=404)
             

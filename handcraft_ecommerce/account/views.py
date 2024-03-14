@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.exceptions import AuthenticationFailed
-from .serializers import UserSerializer
+from .serializers import UserSerializer, ChangePasswordSerializer
 from .models import User
 from .models import CustomToken
 from django.shortcuts import get_object_or_404
@@ -9,7 +9,7 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 import jwt
 import datetime
-from rest_framework import status
+from rest_framework import status, generics
 from .app import upload_photo,delete_photos
 import os
 from urllib.parse import unquote
@@ -242,3 +242,40 @@ class CustomLogoutView(LogoutView):
             return HttpResponseRedirect(self.get_next_page())
         else:
             return super().dispatch(request, *args, **kwargs)
+        
+
+class ChangePasswordView(generics.UpdateAPIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+ 
+    serializer_class= ChangePasswordSerializer
+    model = User
+        
+    def patch(self, request, *args, **kwargs):
+
+        try:
+            user = User.objects.get(id=request.user.id)
+            # Check if the user's token has expired
+            token = CustomToken.objects.get(user=request.user)
+            if token.expires and token.is_expired():
+                raise AuthenticationFailed({"data":"expired_token.", "message":'Please login again.'})
+            
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+        except CustomToken.DoesNotExist:
+            return Response({'error': 'User must login first'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': str(e)})
+
+        
+        self.object=request.user
+        serializer = self.get_serializer(data = request.data)
+        
+        if serializer.is_valid():
+            if not self.object.check_password(serializer.data.get("old_password")):
+                return Response({"old password" : ["wornd password"]}, status = status.HTTP_400_BAD_REQUEST)
+            self.object.set_password(serializer.data.get("new_password"))
+            self.object.save()
+
+            return Response({"message": "password updated successfully"}, status=status.HTTP_200_OK)
+        return Response(serializer.error, status = status.HTTP_400_BAD_REQUEST)
