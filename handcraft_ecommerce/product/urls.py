@@ -43,7 +43,7 @@ urlpatterns = [
      path('submit_review/<int:product_id>/', views.submit_review, name='submit_review'),
 
      # chatbot
-     path('getResponse/',views.get_response,name='getResponse/'),
+     # path('getResponse/',views.get_response,name='getResponse/'),
 
      # all product url for search bar
      path('',include(router.urls)),

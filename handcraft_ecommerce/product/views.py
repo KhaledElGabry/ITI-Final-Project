@@ -1,6 +1,5 @@
 import os
-from .models import Product, Category, SubCategory , Rating
-from .models import Product, Category, SubCategory
+from .models import Product, Category, SubCategory, Rating
 from account.models import User
 from .serializers import ProductSerializer, CategorySerializer, SubCategorySerializer
 from rest_framework.response import Response
@@ -31,9 +30,9 @@ from django.core import serializers
 from django.core.paginator import Paginator
 
 
-from chatterbot import ChatBot
-from chatterbot.trainers import ListTrainer , ChatterBotCorpusTrainer
-import time
+# from chatterbot import ChatBot
+# from chatterbot.trainers import ListTrainer , ChatterBotCorpusTrainer
+# import time
 from django.views.decorators.csrf import csrf_exempt
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -91,8 +90,6 @@ class CustomPagination(PageNumberPagination):
 
 # Products List and Details API's and Paginator 
 
-
-# Products List and Details API's and Paginator 
 
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
@@ -514,46 +511,46 @@ def submit_review(request, product_id):
     
 
 
-#==========================================================Chat Bot====================================================
-bot = ChatBot(
-    'chatbot',
-    read_only=False,
-    logic_adapters=[
-        {
-            'import_path': 'chatterbot.logic.BestMatch',
-            'default_response': 'Sorry, I don\'t understand.',
-            'maximum_similarity_threshold': 0.90
-        }
-    ]
-)
-list_to_train = [
+# #==========================================================Chat Bot====================================================
+# bot = ChatBot(
+#     'chatbot',
+#     read_only=False,
+#     logic_adapters=[
+#         {
+#             'import_path': 'chatterbot.logic.BestMatch',
+#             'default_response': 'Sorry, I don\'t understand.',
+#             'maximum_similarity_threshold': 0.90
+#         }
+#     ]
+# )
+# list_to_train = [
    
    
-    "Hello",
-    "Hello,friend",
+#     "Hello",
+#     "Hello,friend",
      
-    "could you explain to me this website",
-    "this website for handmade , the seller will display the product on website, and you have the option to choose one of the products you like",
+#     "could you explain to me this website",
+#     "this website for handmade , the seller will display the product on website, and you have the option to choose one of the products you like",
     
-    "how can i buy",
-    "first you need to register as a customer then search for the product after that choose it , pay the amount and it will reach to you on time",
+#     "how can i buy",
+#     "first you need to register as a customer then search for the product after that choose it , pay the amount and it will reach to you on time",
     
-    "how to know the quality of this product",
-    "there is an averege review for each product and also after you get the product you can submit a review",
+#     "how to know the quality of this product",
+#     "there is an averege review for each product and also after you get the product you can submit a review",
     
-    "i need to display my product", 
-    "register on website as a vendor , fillout you data , you will be able to find add products , click on it and you will be able to add any products that you need", 
+#     "i need to display my product", 
+#     "register on website as a vendor , fillout you data , you will be able to find add products , click on it and you will be able to add any products that you need", 
      
     
-]
-list_trainer = ListTrainer(bot)
-list_trainer.train(list_to_train)
+# ]
+# list_trainer = ListTrainer(bot)
+# list_trainer.train(list_to_train)
 
-@csrf_exempt
-def get_response(request):
-    user_message = request.POST.get('userMessage')
-    if user_message:
-        chat_response = str(bot.get_response(user_message))
-    else:
-        chat_response = "Please provide a 'userMessage' parameter."
-    return JsonResponse({'response': chat_response})
+# @csrf_exempt
+# def get_response(request):
+#     user_message = request.POST.get('userMessage')
+#     if user_message:
+#         chat_response = str(bot.get_response(user_message))
+#     else:
+#         chat_response = "Please provide a 'userMessage' parameter."
+#     return JsonResponse({'response': chat_response})
