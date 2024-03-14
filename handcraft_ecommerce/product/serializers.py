@@ -132,6 +132,13 @@ class ProductSerializer(serializers.ModelSerializer):
       
   def delete(self, instance):
       instance.delete() 
+  
+
+  def get_discounted_price(self, obj):
+      if obj.prodOnSale:
+          discount = obj.prodPrice * 0.1  # Calculate 10% discount
+          return obj.prodPrice - discount
+      return obj.prodPrice  # Return original price if not on sale
 
 
 
