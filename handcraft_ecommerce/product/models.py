@@ -14,6 +14,8 @@ class Product(models.Model):
     prodDescription = models.TextField(max_length=450, default='', blank=True, null=True, verbose_name=('Product Description'))
     prodSubCategory = models.ForeignKey('SubCategory', on_delete=models.CASCADE, default=1, verbose_name=('Sub Category Name'),)
     prodStock = models.IntegerField(default=0, verbose_name=('On Stock'))
+    prodOnSale = models.BooleanField(default=False)
+    prodDiscountPercentage = models.IntegerField(default=0, validators=[MinValueValidator(0), MaxValueValidator(100)])
     prodImageThumbnail = models.ImageField(upload_to='product/', default='thumbnails/no-product.png', validators=[FileExtensionValidator(['png','jpg','jpeg'])], verbose_name=('Image Thumbnail'), null=True, blank=True)
     prodImageOne = models.ImageField(upload_to='product/', default='thumbnails/no-product.png', validators=[FileExtensionValidator(['png','jpg','jpeg'])], verbose_name=('Product Image One'), null=True, blank=True)
     prodImageTwo = models.ImageField(upload_to='product/', default='thumbnails/no-product.png', validators=[FileExtensionValidator(['png','jpg','jpeg'])], verbose_name=('Product Image Two'), null=True, blank=True)
