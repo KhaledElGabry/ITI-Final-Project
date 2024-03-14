@@ -38,12 +38,6 @@ urlpatterns = [
      path('subcategory/', views.subCategoryListApi, name='subCategoryListApi'),
      path('subcategory/<int:id>/', views.subCategoryDetailsApi, name='subCategoryDetailsApi'),
 
- 
-     # favorite prod
-    path('add_to_Favorite/<int:id>/',views.add_to_Favorite, name='add_to_Favorite'),
-    path('remove_from_Favorite/<int:id>/',views.remove_from_Favorite, name='remove_from_Favorite'),
-    path('user_favorite/',views.user_favorite, name='user_favorite'),
-
      #  rating 
      path('product_r/<int:id>/',views.product_rat),
      path('submit_review/<int:product_id>/', views.submit_review, name='submit_review'),

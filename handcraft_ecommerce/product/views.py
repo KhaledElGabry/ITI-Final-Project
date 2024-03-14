@@ -1,6 +1,5 @@
 import os
-from .models import Product, Category, SubCategory , Rating
-from .models import Product, Category, SubCategory
+from .models import Product, Category, SubCategory, Rating
 from account.models import User
 from .serializers import ProductSerializer, CategorySerializer, SubCategorySerializer
 from rest_framework.response import Response
@@ -91,8 +90,6 @@ class CustomPagination(PageNumberPagination):
 
 # Products List and Details API's and Paginator 
 
-
-# Products List and Details API's and Paginator 
 
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
@@ -509,84 +506,10 @@ def submit_review(request, product_id):
                 return Response({'message': 'Product not found'}, status=404)
             
         return JsonResponse({'reviews': rating.id})
-
-#================================ API for favorite =================================================================
-
-@api_view(['POST'])
-@authentication_classes([TokenAuthentication])
-@permission_classes([permissions.IsAuthenticated])
-def remove_from_Favorite(request,id):
-
-    if request.user.usertype == "vendor":
-         raise AuthenticationFailed({"message":'only customer can access.'})
-         
-    token = CustomToken.objects.get(user=request.user)
-    if token.expires and token.is_expired():
-            raise AuthenticationFailed({"data":"expired_token.", "message":'Please login again.'})
     
-    product=Product.objects.get(id=id)
-    if product.prodFavorite.filter(id=request.user.id).count() > 0:
-        product.prodFavorite.remove(request.user)
-        product.save()      
-        return JsonResponse({'message': 'Product was removed from favorites.'}) 
-    return JsonResponse({})
 
-
-
-@api_view(['POST'])
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
-def add_to_Favorite(request, id):
-
-    if request.user.usertype == "vendor":
-         raise AuthenticationFailed({"message": 'Only customers can access.'})
-         
-    token = CustomToken.objects.get(user=request.user)
-    if token.expires and token.is_expired():
-        raise AuthenticationFailed({"data": "expired_token.", "message": 'Please login again.'})
     
-    try:
-        product = Product.objects.get(id=id)
-    except ObjectDoesNotExist:
-        return JsonResponse({'error': 'Product does not exist'}, status=404)
 
-    if product.prodFavorite.filter(id=request.user.id).exists():
-        return JsonResponse({'message': 'Product is already in favorites.'})
-
-    product.prodFavorite.add(request.user)
-    product.save()
-    return JsonResponse({'message': 'Product was added to favorites.'})
-
-
-
-@api_view(['POST'])
-@authentication_classes([TokenAuthentication])
-@permission_classes([permissions.IsAuthenticated])
-def user_favorite(request):
-
-    if request.user.usertype == "vendor":
-         raise AuthenticationFailed({"message":'only customer can access.'})
-         
-    token = CustomToken.objects.get(user=request.user)
-    if token.expires and token.is_expired():
-            raise AuthenticationFailed({"data":"expired_token.", "message":'Please login again.'})
-    
-    user_favorites=Product.objects.filter(prodFavorite=request.user)
-    # favSer=FavoriteSerializer
-    favorite_products_list = [{
-                                'id': product.id,
-                                'name': product.prodName,
-                                'price': product.prodPrice , 
-                                # 'prodVendor': product.prodVendor , 
-                                'prodDescription':product.prodDescription,
-                                # 'prodDescription':product.prodSubCategory,
-                                'prodOnSale':product.prodOnSale,
-                                'prod in Stock':product.prodStock,
-                                # 'prodDescription':product.prodImageThumbnail,
-                                'prod Image':product.prodImageUrl,
-                                
-                                } for product in user_favorites]
-    return JsonResponse({'favorite_products': favorite_products_list})
 
 # #==========================================================Chat Bot====================================================
 # bot = ChatBot(
