@@ -1,7 +1,7 @@
-
 from rest_framework import serializers
 from .models import Product, Category, SubCategory, ProductImage , Product , Rating , Product
 from account.serializers import UserSerializer
+from decimal import Decimal
 
 
 
@@ -14,7 +14,7 @@ class ProductSearchSerializer(serializers.ModelSerializer):
             'prodPrice',
             'prodDescription',
             'prodSubCategory',
-            # 'prodOnSale',
+            'prodOnSale',
             'prodImageThumbnail',
         ]
 
@@ -31,7 +31,7 @@ class FavoriteSerializer(serializers.ModelSerializer):
             'prodName',
             'prodPrice',
             'prodSubCategory',
-            # 'prodOnSale',
+            'prodOnSale',
             'prodImageThumbnail',
             'prodFavorite',
         ]                        
@@ -57,24 +57,17 @@ class SubCategorySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-
 class ProductImageSerializer(serializers.ModelSerializer):
      class Meta:
         model = ProductImage
         fields = '__all__'
 
 
-
-      
-
-
-
-
 class ProductSerializer(serializers.ModelSerializer):
 
-      # prodUploadedImages = serializers.ListField(write_only=True, required=False, validators=[FileExtensionValidator(['png', 'jpg', 'jpeg'])])
-
-  class Meta:
+    discounted_price = serializers.SerializerMethodField()
+    original_price = serializers.ReadOnlyField(source='prodPrice') 
+    class Meta:
       model = Product
       fields = '__all__'
 
@@ -83,7 +76,7 @@ class ProductSerializer(serializers.ModelSerializer):
       # prodSubCategory = SubCategorySerializer()
 
 
-  def create(self, validated_data):
+    def create(self, validated_data):
      
         product=Product()
         # product.prodVendor=self.request.user
@@ -92,14 +85,13 @@ class ProductSerializer(serializers.ModelSerializer):
         product.prodDescription=validated_data['prodDescription']
         product.prodSubCategory=validated_data['prodSubCategory']
         product.prodStock=validated_data['prodStock']
-        # product.prodOnSale=validated_data['prodOnSale']
+        product.prodOnSale=validated_data['prodOnSale']
+        product.prodDiscountPercentage=validated_data['prodDiscountPercentage']
         product.prodImageThumbnail = validated_data['prodImageThumbnail']
         product.prodImageOne = validated_data['prodImageOne']
         product.prodImageTwo = validated_data['prodImageTwo']
         product.prodImageThree = validated_data['prodImageThree']
         product.prodImageFour = validated_data['prodImageFour']
-        # product.prodUploadedImages = validated_data['prodUploadedImages']
-
 
         product = Product.objects.create(**validated_data)
 
@@ -107,38 +99,41 @@ class ProductSerializer(serializers.ModelSerializer):
         product.save()
         return product    
     
-
-  def update(self, instance, validated_data):
-
-
+    def update(self, instance, validated_data):
 
       instance.prodName = validated_data.get('prodName', instance.prodName)
       instance.prodPrice = validated_data.get('prodPrice', instance.prodPrice)
       instance.prodDescription = validated_data.get('prodDescription', instance.prodDescription)
       instance.prodSubCategory = validated_data.get('prodSubCategory', instance.prodSubCategory)
-      # instance.prodOnSale = validated_data.get('prodOnSale', instance.prodOnSale)
+      instance.prodOnSale = validated_data.get('prodOnSale', instance.prodOnSale)
+      instance.prodDiscountPercentage = validated_data.get('prodDiscountPercentage', instance.prodDiscountPercentage)
       instance.prodStock = validated_data.get('prodStock', instance.prodStock)
       instance.prodImageThumbnail = validated_data.get('prodImageThumbnail', instance.prodImageThumbnail)
       instance.prodImageOne = validated_data.get('prodImageOne', instance.prodImageOne)
       instance.prodImageTwo = validated_data.get('prodImageTwo', instance.prodImageTwo)
       instance.prodImageThree = validated_data.get('prodImageThree', instance.prodImageThree)
       instance.prodImageFour = validated_data.get('prodImageFour', instance.prodImageFour)
-
-
-
-    #   instance.prodFavorite = validated_data.get('prodFavorite', instance.prodFavorite)
+      # instance.prodFavorite = validated_data.get('prodFavorite', instance.prodFavorite)
+      
+      
       instance.save()
       return instance
       
-  def delete(self, instance):
+    def delete(self, instance):
       instance.delete() 
   
 
-  def get_discounted_price(self, obj):
-      if obj.prodOnSale:
-          discount = obj.prodPrice * 0.1  # Calculate 10% discount
-          return obj.prodPrice - discount
-      return obj.prodPrice  # Return original price if not on sale
+    def get_discounted_price(self, instance):
+      if instance.prodOnSale:
+        try:
+            prodPrice_decimal = Decimal(str(instance.prodPrice))
+            discount_decimal = Decimal(instance.prodDiscountPercentage) / 100
+        except (ValueError, TypeError):
+            return instance.prodPrice  
+        discounted_price = prodPrice_decimal - (prodPrice_decimal * discount_decimal)
+        return discounted_price
+      return instance.prodPrice 
+
 
 
 
