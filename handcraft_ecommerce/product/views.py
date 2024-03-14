@@ -1,6 +1,5 @@
 import os
-from .models import Product, Category, SubCategory , Rating
-from .models import Product, Category, SubCategory
+from .models import Product, Category, SubCategory, Rating
 from account.models import User
 from .serializers import ProductSerializer, CategorySerializer, SubCategorySerializer
 from rest_framework.response import Response
@@ -31,9 +30,9 @@ from django.core import serializers
 from django.core.paginator import Paginator
 
 
-from chatterbot import ChatBot
-from chatterbot.trainers import ListTrainer , ChatterBotCorpusTrainer
-import time
+# from chatterbot import ChatBot
+# from chatterbot.trainers import ListTrainer , ChatterBotCorpusTrainer
+# import time
 from django.views.decorators.csrf import csrf_exempt
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -91,8 +90,6 @@ class CustomPagination(PageNumberPagination):
 
 # Products List and Details API's and Paginator 
 
-
-# Products List and Details API's and Paginator 
 
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
@@ -509,125 +506,51 @@ def submit_review(request, product_id):
                 return Response({'message': 'Product not found'}, status=404)
             
         return JsonResponse({'reviews': rating.id})
-
-#================================ API for favorite =================================================================
-
-@api_view(['POST'])
-@authentication_classes([TokenAuthentication])
-@permission_classes([permissions.IsAuthenticated])
-def remove_from_Favorite(request,id):
-
-    if request.user.usertype == "vendor":
-         raise AuthenticationFailed({"message":'only customer can access.'})
-         
-    token = CustomToken.objects.get(user=request.user)
-    if token.expires and token.is_expired():
-            raise AuthenticationFailed({"data":"expired_token.", "message":'Please login again.'})
     
-    product=Product.objects.get(id=id)
-    if product.prodFavorite.filter(id=request.user.id).count() > 0:
-        product.prodFavorite.remove(request.user)
-        product.save()      
-        return JsonResponse({'message': 'Product was removed from favorites.'}) 
-    return JsonResponse({})
 
-
-
-@api_view(['POST'])
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
-def add_to_Favorite(request, id):
-
-    if request.user.usertype == "vendor":
-         raise AuthenticationFailed({"message": 'Only customers can access.'})
-         
-    token = CustomToken.objects.get(user=request.user)
-    if token.expires and token.is_expired():
-        raise AuthenticationFailed({"data": "expired_token.", "message": 'Please login again.'})
     
-    try:
-        product = Product.objects.get(id=id)
-    except ObjectDoesNotExist:
-        return JsonResponse({'error': 'Product does not exist'}, status=404)
-
-    if product.prodFavorite.filter(id=request.user.id).exists():
-        return JsonResponse({'message': 'Product is already in favorites.'})
-
-    product.prodFavorite.add(request.user)
-    product.save()
-    return JsonResponse({'message': 'Product was added to favorites.'})
 
 
-
-@api_view(['POST'])
-@authentication_classes([TokenAuthentication])
-@permission_classes([permissions.IsAuthenticated])
-def user_favorite(request):
-
-    if request.user.usertype == "vendor":
-         raise AuthenticationFailed({"message":'only customer can access.'})
-         
-    token = CustomToken.objects.get(user=request.user)
-    if token.expires and token.is_expired():
-            raise AuthenticationFailed({"data":"expired_token.", "message":'Please login again.'})
-    
-    user_favorites=Product.objects.filter(prodFavorite=request.user)
-    # favSer=FavoriteSerializer
-    favorite_products_list = [{
-                                'id': product.id,
-                                'name': product.prodName,
-                                'price': product.prodPrice , 
-                                # 'prodVendor': product.prodVendor , 
-                                'prodDescription':product.prodDescription,
-                                # 'prodDescription':product.prodSubCategory,
-                                'prodOnSale':product.prodOnSale,
-                                'prod in Stock':product.prodStock,
-                                # 'prodDescription':product.prodImageThumbnail,
-                                'prod Image':product.prodImageUrl,
-                                
-                                } for product in user_favorites]
-    return JsonResponse({'favorite_products': favorite_products_list})
-
-#==========================================================Chat Bot====================================================
-bot = ChatBot(
-    'chatbot',
-    read_only=False,
-    logic_adapters=[
-        {
-            'import_path': 'chatterbot.logic.BestMatch',
-            'default_response': 'Sorry, I don\'t understand.',
-            'maximum_similarity_threshold': 0.90
-        }
-    ]
-)
-list_to_train = [
+# #==========================================================Chat Bot====================================================
+# bot = ChatBot(
+#     'chatbot',
+#     read_only=False,
+#     logic_adapters=[
+#         {
+#             'import_path': 'chatterbot.logic.BestMatch',
+#             'default_response': 'Sorry, I don\'t understand.',
+#             'maximum_similarity_threshold': 0.90
+#         }
+#     ]
+# )
+# list_to_train = [
    
    
-    "Hello",
-    "Hello,friend",
+#     "Hello",
+#     "Hello,friend",
      
-    "could you explain to me this website",
-    "this website for handmade , the seller will display the product on website, and you have the option to choose one of the products you like",
+#     "could you explain to me this website",
+#     "this website for handmade , the seller will display the product on website, and you have the option to choose one of the products you like",
     
-    "how can i buy",
-    "first you need to register as a customer then search for the product after that choose it , pay the amount and it will reach to you on time",
+#     "how can i buy",
+#     "first you need to register as a customer then search for the product after that choose it , pay the amount and it will reach to you on time",
     
-    "how to know the quality of this product",
-    "there is an averege review for each product and also after you get the product you can submit a review",
+#     "how to know the quality of this product",
+#     "there is an averege review for each product and also after you get the product you can submit a review",
     
-    "i need to display my product", 
-    "register on website as a vendor , fillout you data , you will be able to find add products , click on it and you will be able to add any products that you need", 
+#     "i need to display my product", 
+#     "register on website as a vendor , fillout you data , you will be able to find add products , click on it and you will be able to add any products that you need", 
      
     
-]
-list_trainer = ListTrainer(bot)
-list_trainer.train(list_to_train)
+# ]
+# list_trainer = ListTrainer(bot)
+# list_trainer.train(list_to_train)
 
-@csrf_exempt
-def get_response(request):
-    user_message = request.POST.get('userMessage')
-    if user_message:
-        chat_response = str(bot.get_response(user_message))
-    else:
-        chat_response = "Please provide a 'userMessage' parameter."
-    return JsonResponse({'response': chat_response})
+# @csrf_exempt
+# def get_response(request):
+#     user_message = request.POST.get('userMessage')
+#     if user_message:
+#         chat_response = str(bot.get_response(user_message))
+#     else:
+#         chat_response = "Please provide a 'userMessage' parameter."
+#     return JsonResponse({'response': chat_response})
