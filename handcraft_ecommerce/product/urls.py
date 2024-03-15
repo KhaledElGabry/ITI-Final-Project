@@ -41,6 +41,8 @@ urlpatterns = [
      #  rating 
      path('product_r/<int:id>/',views.product_rat),
      path('submit_review/<int:product_id>/', views.submit_review, name='submit_review'),
+     path('top_rating/', views.top_rating, name='top_rating'),
+     path('allRateForProduct/<int:id>/', views.allRateForProduct, name='allRateForProduct'),
 
      # chatbot
      # path('getResponse/',views.get_response,name='getResponse/'),

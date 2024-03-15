@@ -35,6 +35,9 @@ from django.core.paginator import Paginator
 # import time
 from django.views.decorators.csrf import csrf_exempt
 from django.core.exceptions import ObjectDoesNotExist
+from rest_framework.exceptions import NotFound
+from django.db.models import Avg
+
 
 
 # Products Pagination
@@ -464,15 +467,84 @@ class AllProductSearch(viewsets.GenericViewSet, mixins.ListModelMixin):
         return self.queryset.filter(text_qs)
 #================================ API for rating =================================================================
 
+#---------------------------------- showing all rating for specific product -------------------------------------
+def allRateForProduct(request, id):
+    
+    try:
+        product = Product.objects.get(id=id)
+        ratings = Rating.objects.filter(rateProduct_id=id)
+
+        if not ratings:
+            return JsonResponse({'error': 'Product has no ratings'}, status=404)
+
+        productRatings = []
+        for rating in ratings:
+            user = rating.rateCustomer
+            user_image_url = user.image.url if user.image else None  # Get the URL of the image if it exists
+            productRatings.append({
+                'rating': rating.rateRating,
+                'subject': rating.rateSubject,
+                'review': rating.rateReview,
+                'first_name_of_user': user.first_name,
+                'last_name_of_user': user.last_name,
+                'image_url_of_user': user_image_url,  # Include the image URL instead of the ImageFieldFile object
+            })
+
+        return JsonResponse({'product': product.prodName, 'ratings': productRatings})
+
+    except Product.DoesNotExist:
+        return JsonResponse({'error': 'Product does not exist'})
 #--------------------------------- averege rating ---------------------------
 def product_rat(request,id):
-    rate=Rating.objects.filter(rateProduct__id=id)
-    product=Product.objects.get(id=id)
-    sum=0
+    try:
+        product = Product.objects.get(id=id)
+    except ObjectDoesNotExist:
+        return JsonResponse({'error': 'Product does not exist'}, status=404)
+    
+    rate = Rating.objects.filter(rateProduct__id=id)
+    sum = 0
     for i in rate:
         sum += i.rateRating
-    result=sum/len(rate)
-    return JsonResponse({'id':product.id,'product':product.prodName,'averege Rate':result})
+    
+    if len(rate) > 0:
+        result = sum / len(rate)
+    else:
+        result = 0  
+
+    return JsonResponse({'id': product.id, 'product': product.prodName, 'average_Rate': result})
+#----------------------------------- Top 6 Rating ------------------------------
+
+def top_rating(request):
+    products = Product.objects.all()
+
+    top_rated_products = Rating.objects.values('rateProduct__id').annotate(average_rating=Avg('rateRating')).order_by('-average_rating')[:6]
+
+    top_rated_products_list = []
+    for item in top_rated_products:
+        product_id = item['rateProduct__id']
+        average_rating = item['average_rating']
+        product_name = Product.objects.get(id=product_id).prodName
+        product_price = Product.objects.get(id=product_id).prodPrice
+        prodDescription = Product.objects.get(id=product_id).prodDescription
+        prodStock = Product.objects.get(id=product_id).prodStock
+        prodOnSale = Product.objects.get(id=product_id).prodOnSale
+        prodDiscountPercentage = Product.objects.get(id=product_id).prodDiscountPercentage
+        prodImageUrl = Product.objects.get(id=product_id).prodImageUrl
+        created_at = Product.objects.get(id=product_id).created_at
+        top_rated_products_list.append({
+            'product_id': product_id,
+            'average_rating': average_rating,
+            'product_name': product_name,
+            'product_price': product_price,
+            'prodDescription': prodDescription,
+            'prodStock': prodStock,
+            'prodOnSale': prodOnSale,
+            'prodDiscountPercentage': prodDiscountPercentage,
+            'prodImageUrl': prodImageUrl,
+            'created_at': created_at,
+        })
+
+    return JsonResponse({'top_rated_products': top_rated_products_list})
 
 #-------------------------------------------Rate product------------------------------------------------------
 
@@ -481,6 +553,7 @@ def product_rat(request,id):
 @permission_classes([permissions.IsAuthenticated])
 @csrf_exempt
 def submit_review(request, product_id):
+
     if request.user.usertype == "vendor":
         raise AuthenticationFailed({"message": 'only customer can access.'})
     
@@ -495,6 +568,7 @@ def submit_review(request, product_id):
             rating.rateSubject = request.data.get('rateSubject')
             rating.rateReview = request.data.get('rateReview')
             rating.save()
+            return JsonResponse({'Message': 'Product Rate was Updated'})
         except Rating.DoesNotExist:
             try:
                 product = Product.objects.get(id=product_id)
@@ -502,14 +576,10 @@ def submit_review(request, product_id):
                                                rateRating=request.data.get('rateRating'),
                                                rateSubject=request.data.get('rateSubject'),
                                                rateReview=request.data.get('rateReview'))
+                return JsonResponse({'Message': 'Product Rate was added succesfully'})
             except ObjectDoesNotExist:
-                return Response({'message': 'Product not found'}, status=404)
-            
+                return Response({'message': 'Product not found'}, status=404)   
         return JsonResponse({'reviews': rating.id})
-    
-
-    
-
 
 # #==========================================================Chat Bot====================================================
 # bot = ChatBot(
