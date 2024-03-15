@@ -1,6 +1,6 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.exceptions import AuthenticationFailed, ValidationError
 from .serializers import UserSerializer, ChangePasswordSerializer
 from .models import User
 from .models import CustomToken
@@ -8,9 +8,10 @@ from django.shortcuts import get_object_or_404
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 import jwt
-import datetime
+from datetime import timedelta
+from django.utils import timezone  
 from rest_framework import status, generics
-from .app import upload_photo,delete_photos
+from .app import upload_photo, delete_photos
 import os
 from urllib.parse import unquote
 from django.http import HttpResponse
@@ -23,9 +24,15 @@ from django.utils.encoding import force_bytes
 from django.urls import reverse
 from .tokens import account_activation_token  # You need to create this token generator
 from django.core.mail import EmailMessage
-
 from .utils import generate_verification_token
 from django.utils.http import urlsafe_base64_decode
+from django.core.mail import send_mail
+from django.urls import reverse
+from django.contrib.auth.password_validation import validate_password
+import secrets
+import string
+from django.contrib.auth import get_user_model
+
 
 
 class RegisterView(APIView):
@@ -279,3 +286,91 @@ class ChangePasswordView(generics.UpdateAPIView):
 
             return Response({"message": "password updated successfully"}, status=status.HTTP_200_OK)
         return Response(serializer.error, status = status.HTTP_400_BAD_REQUEST)
+    
+    
+    
+    
+# Forgot Password API
+
+class ForgotPasswordView(APIView):
+    def post(self, request):
+        email = request.data['email']
+
+        try:
+            user = get_user_model().objects.get(email=email)
+
+            def create_and_store_random_code(user, code_length=6, timeout_minutes=3):
+                random_code = ''.join(secrets.choice(string.digits) for _ in range(code_length))
+                user.random_code = random_code
+                user.random_code_expires = timezone.now() + timedelta(minutes=timeout_minutes)
+                user.save()
+                return random_code
+
+            random_code = create_and_store_random_code(user)
+
+            subject = 'Password Reset'
+            message = f'Your password reset code is: {random_code}\nThis code will expire in 3 minutes.'
+            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [email])
+
+            return Response({'message': 'Password reset code sent to your email'})
+
+        except User.DoesNotExist:
+            return Response({'error': 'Email address may not be correct'}, status=status.HTTP_404_NOT_FOUND)
+
+
+
+
+# Verify Reset Code API
+
+
+class VerifyResetCodeAPI(APIView):
+    def post(self, request):
+        resetCode = request.data['resetCode'] 
+
+        try:
+            user = get_user_model().objects.filter(random_code=resetCode).first()
+            if not user or user.random_code_expires < timezone.now():
+                return Response({'error': 'Invalid or expired verification code'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+            user.random_code = None
+            user.random_code_expires = None
+            user.save()
+            return Response({'message': 'Code verified successfully!'})
+
+        except User.DoesNotExist:
+            return Response({'error': 'Invalid or expired verification code'}, status=status.HTTP_400_BAD_REQUEST) # same error message for security reason
+
+        return Response({'error': 'An unexpected error occurred'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    
+
+# Password Reset API
+
+class PasswordResetView(APIView):
+    def put(self, request):
+        try:
+            email = request.data['email']
+            newPassword = request.data['newPassword']
+            
+            
+            user = get_user_model().objects.get(email=email)
+
+            try:
+                validate_password(newPassword)
+            except ValidationError as e:
+                return Response({'error': ', '.join(e.messages)}, status=status.HTTP_400_BAD_REQUEST)
+
+            user.random_code = None
+            user.random_code_expires = None
+            user.set_password(newPassword)
+            user.save()
+
+            return Response({'message': f'Password reset successfully for user: {user.email}'})
+
+        except User.DoesNotExist:
+            return Response({'error': 'Email address may not be correct'}, status=status.HTTP_404_NOT_FOUND)
+
+        return Response({'error': 'An unexpected error occurred'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
