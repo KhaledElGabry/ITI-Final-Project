@@ -4,6 +4,7 @@ from account.serializers import UserSerializer
 from decimal import Decimal
 
 
+
 class ProductSearchSerializer(serializers.ModelSerializer):
     class Meta:
         model=Product
@@ -65,10 +66,7 @@ class ProductImageSerializer(serializers.ModelSerializer):
 class ProductSerializer(serializers.ModelSerializer):
 
     discounted_price = serializers.SerializerMethodField()
-    # original_price = serializers.ReadOnlyField(source='prodPrice')
-    commission = serializers.SerializerMethodField()
-    final_price = serializers.SerializerMethodField() 
-    
+    original_price = serializers.ReadOnlyField(source='prodPrice') 
     class Meta:
       model = Product
       fields = '__all__'
@@ -120,49 +118,21 @@ class ProductSerializer(serializers.ModelSerializer):
       
       instance.save()
       return instance
-    
-
       
     def delete(self, instance):
-      instance.delete()       
-    
-    
-          
+      instance.delete() 
+  
+
     def get_discounted_price(self, instance):
       if instance.prodOnSale:
         try:
             prodPrice_decimal = Decimal(str(instance.prodPrice))
             discount_decimal = Decimal(instance.prodDiscountPercentage) / 100
-            discounted_price = prodPrice_decimal - (prodPrice_decimal * discount_decimal)
-            return discounted_price
         except (ValueError, TypeError):
-            return instance.prodPrice  # Return original price on errors
-      return instance.prodPrice  
-
-
-    def get_commission(self, instance):
-        if instance.prodPrice:  
-            prodPrice_decimal = Decimal(str(instance.prodPrice))
-            commission = prodPrice_decimal * Decimal(0.1) 
-            return commission
-        return None  
-      
-      
-    def get_final_price(self, instance):
-      if instance.prodOnSale:
-          try:
-              prodPrice_decimal = Decimal(str(instance.prodPrice))
-              discount_decimal = Decimal(instance.prodDiscountPercentage) / 100
-              discounted_price = prodPrice_decimal - (prodPrice_decimal * discount_decimal)
-              commission = prodPrice_decimal * Decimal(0.1)
-              return discounted_price - commission
-          except (ValueError, TypeError):
-              return instance.prodPrice  
-      else:
-          if instance.prodPrice:
-              commission = Decimal(str(instance.prodPrice)) * Decimal(0.1)
-              return instance.prodPrice - commission
-          return None  
+            return instance.prodPrice  
+        discounted_price = prodPrice_decimal - (prodPrice_decimal * discount_decimal)
+        return discounted_price
+      return instance.prodPrice 
 
 
 
