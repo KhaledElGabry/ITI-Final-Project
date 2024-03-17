@@ -162,7 +162,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 STRIPE_PUBLIC_KEY="pk_test_51OtfXtK5Jlen45sGYD31HARTO1v6ZX6FvcJeKEXJHDZAiNTIdi89Cz0rzYBxfruotjBgzIvIRDNy7Cb4ICFKjGbe00sqYPIxWZ"
 STRIPE_SECRET_KEY="sk_test_51OtfXtK5Jlen45sGrFEBSChOPt4P8FBteMhqEQW3JsO2K1G3kz42my2yNb9nWbM3eT3WQMzWjnHhUA4aJF0yVBAq00JW0PeWPW"
-SITE_URL='http://localhost:8000/'
+SITE_URL='http://localhost:3000/'
 
 JAZZMIN_SETTINGS = {
     # title of the window (Will default to current_admin_site.site_title if absent or None)
