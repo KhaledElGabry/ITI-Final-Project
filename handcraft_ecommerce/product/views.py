@@ -28,7 +28,9 @@ from .serializers import ProductSearchSerializer, RatingSerializer, FavoriteSeri
 from django.http import JsonResponse
 from django.core import serializers
 from django.core.paginator import Paginator
-
+import json
+from chatterbot import ChatBot
+from chatterbot.trainers import ListTrainer , ChatterBotCorpusTrainer
 
 # from chatterbot import ChatBot
 # from chatterbot.trainers import ListTrainer , ChatterBotCorpusTrainer
@@ -582,45 +584,64 @@ def submit_review(request, product_id):
         return JsonResponse({'reviews': rating.id})
 
 # #==========================================================Chat Bot====================================================
-# bot = ChatBot(
-#     'chatbot',
-#     read_only=False,
-#     logic_adapters=[
-#         {
-#             'import_path': 'chatterbot.logic.BestMatch',
-#             'default_response': 'Sorry, I don\'t understand.',
-#             'maximum_similarity_threshold': 0.90
-#         }
-#     ]
-# )
-# list_to_train = [
+bot = ChatBot(
+    'chatbot',
+    read_only=False,
+    logic_adapters=[
+        {
+            'import_path': 'chatterbot.logic.BestMatch',
+            'default_response': 'Sorry, I don\'t understand.',
+            'maximum_similarity_threshold': 0.90
+        }
+    ]
+)
+list_to_train = [
    
    
-#     "Hello",
-#     "Hello,friend",
-     
-#     "could you explain to me this website",
-#     "this website for handmade , the seller will display the product on website, and you have the option to choose one of the products you like",
-    
-#     "how can i buy",
-#     "first you need to register as a customer then search for the product after that choose it , pay the amount and it will reach to you on time",
-    
-#     "how to know the quality of this product",
-#     "there is an averege review for each product and also after you get the product you can submit a review",
-    
-#     "i need to display my product", 
-#     "register on website as a vendor , fillout you data , you will be able to find add products , click on it and you will be able to add any products that you need", 
-     
-    
-# ]
-# list_trainer = ListTrainer(bot)
-# list_trainer.train(list_to_train)
+    "Hello",
+"Hello there!",
 
-# @csrf_exempt
-# def get_response(request):
-#     user_message = request.POST.get('userMessage')
-#     if user_message:
-#         chat_response = str(bot.get_response(user_message))
-#     else:
-#         chat_response = "Please provide a 'userMessage' parameter."
-#     return JsonResponse({'response': chat_response})
+"Is this website secure for making transactions?",
+"Yes, our website employs industry-standard security measures to ensure safe transactions.",
+
+"What payment methods are accepted?",
+"We accept various payment methods including credit/debit cards, PayPal, and bank transfers.",
+
+"How long does shipping usually take?",
+"Shipping times vary depending on your location and the product. You can find estimated delivery times during the checkout process.",
+
+"What if I'm not satisfied with my purchase?",
+"We have a return policy in place. If you're not satisfied with your purchase, you can return it within a certain timeframe for a refund or exchange.",
+
+"Are there any discounts or promotions available?",
+"We regularly offer discounts and promotions. You can subscribe to our newsletter or follow us on social media to stay updated on the latest deals.",
+
+"How can I track my order?",
+"Once your order is shipped, you'll receive a tracking number via email. You can use this tracking number to monitor the status of your delivery.",
+
+"Do you offer international shipping?",
+"Yes, we offer international shipping to many countries. Shipping rates and times may vary depending on the destination.",
+
+"Can I cancel my order?",
+"You can cancel your order before it is shipped. Once it's shipped, you'll need to follow our return process for a refund.",
+
+"What if the product I want is out of stock?",
+"If a product is out of stock, you can sign up for notifications to be alerted when it's back in stock. Alternatively, you can contact customer support for assistance."
+    
+]
+list_trainer = ListTrainer(bot)
+list_trainer.train(list_to_train)
+@csrf_exempt
+def get_response(request):
+    if request.method == 'POST':
+        body_unicode = request.body.decode('utf-8')
+        body = json.loads(body_unicode)
+        user_message = body.get('userMessage')
+        print('User message:', user_message)
+        if user_message:
+            chat_response = str(bot.get_response(user_message))
+        else:
+            chat_response = "Please provide a 'userMessage' parameter."
+        return JsonResponse({'response': chat_response})
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
