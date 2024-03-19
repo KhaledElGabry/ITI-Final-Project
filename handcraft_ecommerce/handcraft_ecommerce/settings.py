@@ -37,7 +37,6 @@ INSTALLED_APPS = [
     'cart.apps.CartConfig',
     'order.apps.OrderConfig',
     'favourit.apps.FavouritConfig',
-    'payment.apps.PaymentConfig',
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders',
