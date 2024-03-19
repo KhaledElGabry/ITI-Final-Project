@@ -131,40 +131,10 @@ class UserView(APIView):
         if serializer.is_valid():
             serializer.save()
 
-            # if user send new image
-            if 'image' in request.data and request.data['image'] is not None:
-                
-                # if user has already image on drive
-                if serializer.validated_data.get('image') is not None:
-                    delete_photos(f"{id}.png", "1MhL0rLJd8lvlfC5nwumvERvogXRVKam5")
-                           
-                # upload new image
-                media_folder = os.path.join(os.getcwd(), "media/users/images")
-                # save new url
-                Url_Image = upload_photo(os.path.join(media_folder, os.path.basename(serializer['image'].value)),f"{id}.png", "1MhL0rLJd8lvlfC5nwumvERvogXRVKam5")
-                user.imageUrl = Url_Image
-                user.save()
-                
-                # remove image from server
-                if os.path.exists(media_folder):
-                    for file_name in os.listdir(media_folder):
-                        file_path = os.path.join(media_folder, file_name)
-                        try:
-                            if os.path.isfile(file_path):
-                                os.remove(file_path)
-                                print(f"Deleted: {file_path}")
-                            else:
-                                print(f"Skipped: {file_path} (not a file)")
-                        except Exception as e:
-                            print(f"Error deleting {file_path}: {e}")
-                else:
-                    print("Folder does not exist.")
-
             user = User.objects.get(id=id)
             serializer = UserSerializer(user)
             return Response({'message': 'Data Updated Successfully', "user":serializer.data})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 class LogoutView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
