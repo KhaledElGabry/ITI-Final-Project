@@ -57,10 +57,10 @@ class SubCategorySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class ProductImageSerializer(serializers.ModelSerializer):
-     class Meta:
-        model = ProductImage
-        fields = '__all__'
+# class ProductImageSerializer(serializers.ModelSerializer):
+#      class Meta:
+#         model = ProductImage
+#         fields = '__all__'
 
 
 class ProductSerializer(serializers.ModelSerializer):

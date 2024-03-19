@@ -224,7 +224,18 @@ def verify_email(request):
             user = User.objects.get(verification_token=token)
             user.is_active = True
             user.save()
-            return HttpResponse('<h1>Email verified successfully!</h1> <a href="http://localhost:3000/login">Go To Login Page</a>')
+            return HttpResponse("""
+                            <html>
+                            <head>
+                                <title>Email Verified</title>
+                            </head>
+                            <body style="font-family: Arial, sans-serif; background-color: #f4f4f4; text-align: center; padding: 20px;">
+                                <div style="font-size: 48px; color: #28a745; margin-bottom: 20px;">&#10004;</div>
+                                <h1 style="color: #333;">Email verified successfully!</h1>
+                                <p> <a href="http://localhost:3000/login" style="display: inline-block; padding: 10px 20px; background-color: black; color: #fff; text-decoration: none; border-radius: 5px;">Login</a>.</p>
+                            </body>
+                            </html>
+                        """)
         except User.DoesNotExist:
             return HttpResponse('Invalid token!')
     else:
