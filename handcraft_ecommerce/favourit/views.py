@@ -78,7 +78,7 @@ def user_favorite(request):
                                 'price': favorite.product.prodPrice,
                                 'prodDescription': favorite.product.prodDescription,
                                 'prodStock': favorite.product.prodStock,
-                                'prodImageUrl': favorite.product.prodImageUrl,
+                                'prodImageThumbnail': favorite.product.prodImageThumbnail,
                                
                                 
                                 } for favorite in user_favorites]

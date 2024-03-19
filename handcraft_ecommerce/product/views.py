@@ -109,7 +109,7 @@ def productListApi(request):
         
        
         # Pagination
-        default_limit = 10  # Set a default limit value
+        default_limit = 100  # Set a default limit value
         try:
             limit = int(request.query_params.get('limit', default_limit))
             if limit < 0:
@@ -468,7 +468,7 @@ def top_rating(request):
         prodStock = Product.objects.get(id=product_id).prodStock
         prodOnSale = Product.objects.get(id=product_id).prodOnSale
         prodDiscountPercentage = Product.objects.get(id=product_id).prodDiscountPercentage
-        prodImageUrl = Product.objects.get(id=product_id).prodImageUrl
+        prodImageThumbnail = Product.objects.get(id=product_id).prodImageThumbnail
         created_at = Product.objects.get(id=product_id).created_at
         top_rated_products_list.append({
             'product_id': product_id,
@@ -479,7 +479,7 @@ def top_rating(request):
             'prodStock': prodStock,
             'prodOnSale': prodOnSale,
             'prodDiscountPercentage': prodDiscountPercentage,
-            'prodImageUrl': prodImageUrl,
+            'prodImageThumbnail': prodImageThumbnail,
             'created_at': created_at,
         })
 
