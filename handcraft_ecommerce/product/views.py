@@ -452,7 +452,6 @@ def product_rat(request,id):
 
     return JsonResponse({'id': product.id, 'product': product.prodName, 'average_Rate': result})
 #----------------------------------- Top 6 Rating ------------------------------
-
 def top_rating(request):
     products = Product.objects.all()
 
@@ -462,25 +461,18 @@ def top_rating(request):
     for item in top_rated_products:
         product_id = item['rateProduct__id']
         average_rating = item['average_rating']
-        product_name = Product.objects.get(id=product_id).prodName
-        product_price = Product.objects.get(id=product_id).prodPrice
-        prodDescription = Product.objects.get(id=product_id).prodDescription
-        prodStock = Product.objects.get(id=product_id).prodStock
-        prodOnSale = Product.objects.get(id=product_id).prodOnSale
-        prodDiscountPercentage = Product.objects.get(id=product_id).prodDiscountPercentage
-        prodImageThumbnail = Product.objects.get(id=product_id).prodImageThumbnail
-        created_at = Product.objects.get(id=product_id).created_at
+        product = Product.objects.get(id=product_id)
         top_rated_products_list.append({
             'product_id': product_id,
             'average_rating': average_rating,
-            'product_name': product_name,
-            'product_price': product_price,
-            'prodDescription': prodDescription,
-            'prodStock': prodStock,
-            'prodOnSale': prodOnSale,
-            'prodDiscountPercentage': prodDiscountPercentage,
-            'prodImageThumbnail': prodImageThumbnail,
-            'created_at': created_at,
+            'product_name': product.prodName,
+            'product_price': product.prodPrice,
+            'prodDescription': product.prodDescription,
+            'prodStock': product.prodStock,
+            'prodOnSale': product.prodOnSale,
+            'prodDiscountPercentage': product.prodDiscountPercentage,
+            'prodImageThumbnail': product.prodImageThumbnail.url if product.prodImageThumbnail else None,  # Serialize image URL
+            'created_at': product.created_at,
         })
 
     return JsonResponse({'top_rated_products': top_rated_products_list})

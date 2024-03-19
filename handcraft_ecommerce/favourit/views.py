@@ -69,17 +69,17 @@ def user_favorite(request):
     token = CustomToken.objects.get(user=request.user)
     if token.expires and token.is_expired():
         raise AuthenticationFailed({"data": "expired_token.", "message": 'Please login again.'})
-    # total_items_count = sum(cart_item.quantity for cart_item in cart_items)
+    
     user_favorites = Favorite.objects.filter(user=request.user)
-    count=Favorite.objects.count()
+    count = user_favorites.count()
+    
     favorite_products_list = [{
-                                'id': favorite.product.id,
-                                'name': favorite.product.prodName,
-                                'price': favorite.product.prodPrice,
-                                'prodDescription': favorite.product.prodDescription,
-                                'prodStock': favorite.product.prodStock,
-                                'prodImageThumbnail': favorite.product.prodImageThumbnail,
-                               
-                                
-                                } for favorite in user_favorites]
-    return JsonResponse({'favorite_products': favorite_products_list, 'total_items_count':count})
+        'id': favorite.product.id,
+        'name': favorite.product.prodName,
+        'price': favorite.product.prodPrice,
+        'prodDescription': favorite.product.prodDescription,
+        'prodStock': favorite.product.prodStock,
+        'prodImageThumbnail': favorite.product.prodImageThumbnail.url if favorite.product.prodImageThumbnail else None,  # Serialize image URL
+    } for favorite in user_favorites]
+    
+    return JsonResponse({'favorite_products': favorite_products_list, 'total_items_count': count})
