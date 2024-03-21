@@ -97,13 +97,13 @@ class CustomPagination(PageNumberPagination):
 
 
 @api_view(['GET'])
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
+# @authentication_classes([TokenAuthentication])
+# @permission_classes([IsAuthenticated])
 def productListApi(request):
     try:
-        token = CustomToken.objects.get(user=request.user)
-        if token.expires and token.is_expired():
-            raise AuthenticationFailed({"data": "expired_token.", "message": 'Please login again.'})
+        # token = CustomToken.objects.get(user=request.user)
+        # if token.expires and token.is_expired():
+        #     raise AuthenticationFailed({"data": "expired_token.", "message": 'Please login again.'})
         
         products = Product.objects.all()
         
@@ -185,12 +185,12 @@ def productListApi(request):
 
 # Products Details API
 @api_view(['GET'])
-@authentication_classes([TokenAuthentication])
-@permission_classes([permissions.IsAuthenticated])
+# @authentication_classes([TokenAuthentication])
+# @permission_classes([permissions.IsAuthenticated])
 def lastProducts(request):
-    token = CustomToken.objects.get(user=request.user)
-    if token.expires and token.is_expired():
-        raise AuthenticationFailed({"data":"expired_token.", "message":'Please login again.'})
+    # token = CustomToken.objects.get(user=request.user)
+    # if token.expires and token.is_expired():
+    #     raise AuthenticationFailed({"data":"expired_token.", "message":'Please login again.'})
 
     products = Product.objects.order_by('-created_at')[:10]
     data = ProductSerializer(products, many=True).data
