@@ -37,7 +37,6 @@ INSTALLED_APPS = [
     'cart.apps.CartConfig',
     'order.apps.OrderConfig',
     'favourit.apps.FavouritConfig',
-    'payment.apps.PaymentConfig',
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders',
@@ -78,6 +77,9 @@ WSGI_APPLICATION = 'handcraft_ecommerce.wsgi.application'
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
 ]
+
+CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:3000']
+
 
 # Database
 

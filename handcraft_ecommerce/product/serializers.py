@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Product, Category, SubCategory, ProductImage , Product , Rating , Product
+from .models import Product, Category, SubCategory, Product , Rating , Product
 from account.serializers import UserSerializer
 from decimal import Decimal
 

@@ -43,15 +43,15 @@ class Rating(models.Model):
      
 
 
-class ProductImage(models.Model):
-    prodImgsForProduct = models.ForeignKey(Product, on_delete=models.CASCADE, default=None, verbose_name=('Product'))
-    prodImage = models.FileField(upload_to='product/',  validators=[FileExtensionValidator(['png','jpg','jpeg'])], verbose_name=('Product Images'))
-    class Meta:
-        verbose_name = ("Product Image")
-        verbose_name_plural = ("Product Images")
+# class ProductImage(models.Model):
+#     prodImgsForProduct = models.ForeignKey(Product, on_delete=models.CASCADE, default=None, verbose_name=('Product'))
+#     prodImage = models.FileField(upload_to='product/',  validators=[FileExtensionValidator(['png','jpg','jpeg'])], verbose_name=('Product Images'))
+#     class Meta:
+#         verbose_name = ("Product Image")
+#         verbose_name_plural = ("Product Images")
 
-    def __str__(self):
-        return str(self.prodImage)
+#     def __str__(self):
+#         return str(self.prodImage)
 
 
 

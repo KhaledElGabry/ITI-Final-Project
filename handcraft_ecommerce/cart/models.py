@@ -9,7 +9,7 @@ class CartItem(models.Model):
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='cartitems')
     item = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True)
     quantity = models.IntegerField(default=1)
-
+    
     def __str__(self):
         return f"{self.quantity} of {self.item.prodName}"
 
