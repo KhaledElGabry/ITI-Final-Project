@@ -574,3 +574,4 @@ def get_response(request):
         return JsonResponse({'response': chat_response})
     else:
         return JsonResponse({'error': 'Method not allowed'}, status=405)
+    

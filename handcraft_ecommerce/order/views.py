@@ -168,7 +168,3 @@ def handle_payment_success(request):
 
 
 
-
-
-
-
