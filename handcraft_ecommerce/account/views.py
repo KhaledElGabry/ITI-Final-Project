@@ -126,10 +126,12 @@ class UserView(APIView):
             token = CustomToken.objects.get(user=user)
             if token.expires and token.is_expired():
                 raise AuthenticationFailed({"data":"expired_token.", "message":'Please login again.'})
-            media_file = os.path.join(os.getcwd(), user.image.path)
-            if os.path.isfile(media_file):
-                os.remove(media_file)
-                print(f"Deleted: {media_file}")
+            if user.image and 'image' in request.FILES:
+                media_file = os.path.join(os.getcwd(), user.image.path)
+                if os.path.isfile(media_file):
+                    os.remove(media_file)
+                    print(f"Deleted: {media_file}")
+            print(user.image)
         except User.DoesNotExist:
             return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
