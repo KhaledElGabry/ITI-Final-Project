@@ -139,32 +139,59 @@ class CreateCheckOutSession(APIView):
             return JsonResponse({'error': 'Something went wrong while creating stripe session', 'details': str(e)}, status=500)
 
 
+# @api_view(['POST'])
+# @permission_classes([IsAuthenticated])
+# @authentication_classes([TokenAuthentication])
+# def handle_payment_success(request):
+#     try:
+#         payload = request.data
+#         print(payload)
+#         # Retrieve order ID from the payload (assuming it's provided by Stripe)
+#         order_id = payload['metadata']['order_id']
+#         order = Order.objects.get(id=order_id)
+        
+#         order.is_paid = True
+#         order.save() 
+
+#         # Clear the cart associated with the user
+#         cart = get_object_or_404(Cart, user=request.user)
+#         # cart.cartitems.all().delete()
+        
+#         return Response({'message': 'Payment successful and cart cleared.'}, status=status.HTTP_200_OK)
+
+#     except Order.DoesNotExist:
+#         return JsonResponse({'error': 'Order not found'}, status=404)
+
+#     except Exception as e:
+#         return JsonResponse({'error': 'Something went wrong while handling payment success', 'details': str(e)}, status=500)
+
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 @authentication_classes([TokenAuthentication])
 def handle_payment_success(request):
     try:
         payload = request.data
-        # Retrieve order ID from the payload (assuming it's provided by Stripe)
+        print(payload)
+        # Retrieve order ID from the payload
         order_id = payload['metadata']['order_id']
         order = Order.objects.get(id=order_id)
-
-        # Clear the cart associated with the user
-        cart = get_object_or_404(Cart, user=request.user)
-        # cart.cartitems.all().delete()
-
-        # Update order status or any other necessary actions
+        order.is_paid = True
+        order.save()
         
-        return Response({'message': 'Payment successful and cart cleared.'}, status=status.HTTP_200_OK)
-
+        for order_item in order.orderitems.all():
+            product = order_item.product
+            if product.stock >= order_item.quantity:
+                product.stock -= order_item.quantity
+                product.save()
+            else:
+                print(f"Stock Out! Not enough stock for {product.prodName}.")
+                
+        cart = get_object_or_404(Cart, user=request.user)
+        cart.cartitems.all().delete()
+        return Response({'message': 'Payment successful and cart cleared. Stock updated.', 'status': status.HTTP_200_OK})
     except Order.DoesNotExist:
         return JsonResponse({'error': 'Order not found'}, status=404)
 
     except Exception as e:
         return JsonResponse({'error': 'Something went wrong while handling payment success', 'details': str(e)}, status=500)
-
-
-
-
-
-

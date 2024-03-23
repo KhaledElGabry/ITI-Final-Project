@@ -16,6 +16,8 @@ from account.models import CustomToken
 from rest_framework.exceptions import AuthenticationFailed
 
 from django.contrib.auth.models import User  # Import the User model
+
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 @authentication_classes([TokenAuthentication])
