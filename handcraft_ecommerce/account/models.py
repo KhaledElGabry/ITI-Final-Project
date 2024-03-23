@@ -57,6 +57,8 @@ class User(AbstractUser):
     imageUrl = models.URLField(null=True)
     verification_token = models.CharField(max_length=100, blank=True, null=True)
     is_active=models.BooleanField(default = False, help_text='Designates whether this user should be treated as active. Unselect this instead of deleting accounts.', verbose_name='active')
+    random_code = models.CharField(max_length=64, blank=True, null=True) 
+    random_code_expires = models.DateTimeField(blank=True, null=True)
     
     
     objects = CustomUserManager()

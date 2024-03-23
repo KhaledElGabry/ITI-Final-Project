@@ -71,13 +71,15 @@ def user_favorite(request):
         raise AuthenticationFailed({"data": "expired_token.", "message": 'Please login again.'})
     
     user_favorites = Favorite.objects.filter(user=request.user)
+    count = user_favorites.count()
+    
     favorite_products_list = [{
-                                'id': favorite.product.id,
-                                'name': favorite.product.prodName,
-                                'price': favorite.product.prodPrice,
-                                'prodDescription': favorite.product.prodDescription,
-                                'prodStock': favorite.product.prodStock,
-                                'prodImageUrl': favorite.product.prodImageUrl,
-                                
-                                } for favorite in user_favorites]
-    return JsonResponse({'favorite_products': favorite_products_list})
+        'id': favorite.product.id,
+        'name': favorite.product.prodName,
+        'price': favorite.product.prodPrice,
+        'prodDescription': favorite.product.prodDescription,
+        'prodStock': favorite.product.prodStock,
+        'prodImageThumbnail': favorite.product.prodImageThumbnail.url if favorite.product.prodImageThumbnail else None,  # Serialize image URL
+    } for favorite in user_favorites]
+    
+    return JsonResponse({'favorite_products': favorite_products_list, 'total_items_count': count})

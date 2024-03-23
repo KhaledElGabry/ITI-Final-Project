@@ -85,7 +85,7 @@ def new_order(request):
     order.orderitems.set(order_items)
 
     # Empty the cart by deleting all cart items
-    cart.cartitems.all().delete()
+   # cart.cartitems.all().delete()
 
     # Serialize the order
     serializer = OrderSerializer(order)
@@ -95,7 +95,7 @@ def new_order(request):
 
 #payment
 stripe.api_key=settings.STRIPE_SECRET_KEY
-success_url = settings.SITE_URL + 'thannk-you/'
+success_url = settings.SITE_URL 
 API_URL="http/locahost:8000"
 class CreateCheckOutSession(APIView):
     def post(self, request, *args, **kwargs):
@@ -121,8 +121,12 @@ class CreateCheckOutSession(APIView):
                 ],
                 metadata={"order_id": order.id},
                 mode='payment',
-                success_url=settings.SITE_URL + 'thank-you/',  # Updated success_url
+                success_url=settings.SITE_URL + 'handle-payment-success/',  # Updated success_url
                 cancel_url=settings.SITE_URL + '?canceled=true',
+                
+
+
+       
             )
 
             # Redirect the user to the Stripe Checkout URL
@@ -133,3 +137,34 @@ class CreateCheckOutSession(APIView):
         
         except Exception as e:
             return JsonResponse({'error': 'Something went wrong while creating stripe session', 'details': str(e)}, status=500)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+@authentication_classes([TokenAuthentication])
+def handle_payment_success(request):
+    try:
+        payload = request.data
+        # Retrieve order ID from the payload (assuming it's provided by Stripe)
+        order_id = payload['metadata']['order_id']
+        order = Order.objects.get(id=order_id)
+
+        # Clear the cart associated with the user
+        cart = get_object_or_404(Cart, user=request.user)
+        # cart.cartitems.all().delete()
+
+        # Update order status or any other necessary actions
+        
+        return Response({'message': 'Payment successful and cart cleared.'}, status=status.HTTP_200_OK)
+
+    except Order.DoesNotExist:
+        return JsonResponse({'error': 'Order not found'}, status=404)
+
+    except Exception as e:
+        return JsonResponse({'error': 'Something went wrong while handling payment success', 'details': str(e)}, status=500)
+
+
+
+
+
+

@@ -45,12 +45,12 @@ def addToCart(request):
 
     if int(quantity) > item.prodStock:
         return Response({'msg': 'Requested quantity exceeds available stock'}, status=status.HTTP_400_BAD_REQUEST)
-
+    cart_items = cart.cartitems.all()
     cart_item.quantity += int(quantity)
     cart_item.save()
-
+    total_items_count = sum(cart_item.quantity for cart_item in cart_items)
     total_item_price = cart_item.get_total_item_price()
-    return Response({'msg': 'added', 'total_item_price': total_item_price, 'quantity': cart_item.quantity}, status=status.HTTP_201_CREATED)
+    return Response({'msg': 'added', 'total_item_price': total_item_price, 'quantity': cart_item.quantity,'total_items_count':total_items_count}, status=status.HTTP_201_CREATED)
 
 
 
