@@ -3,7 +3,7 @@ from cart.models import Cart, CartItem
 from account.models import User
 
 class CartItemSerializer(serializers.ModelSerializer):
-    item_image = serializers.URLField(source='item.prodImageUrl', read_only=True)
+    item_image = serializers.ImageField(source='item.prodImageThumbnail', read_only=True)
     item_name = serializers.CharField(source='item.prodName', read_only=True)
     item_price = serializers.DecimalField(source='item.prodPrice', read_only=True, max_digits=8, decimal_places=2)
     item_description = serializers.CharField(source='item.prodDescription', read_only=True)

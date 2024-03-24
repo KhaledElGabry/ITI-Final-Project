@@ -28,7 +28,9 @@ from .serializers import ProductSearchSerializer, RatingSerializer, FavoriteSeri
 from django.http import JsonResponse
 from django.core import serializers
 from django.core.paginator import Paginator
-
+import json
+from chatterbot import ChatBot
+from chatterbot.trainers import ListTrainer , ChatterBotCorpusTrainer
 
 # from chatterbot import ChatBot
 # from chatterbot.trainers import ListTrainer , ChatterBotCorpusTrainer
@@ -95,19 +97,19 @@ class CustomPagination(PageNumberPagination):
 
 
 @api_view(['GET'])
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
+# @authentication_classes([TokenAuthentication])
+# @permission_classes([IsAuthenticated])
 def productListApi(request):
     try:
-        token = CustomToken.objects.get(user=request.user)
-        if token.expires and token.is_expired():
-            raise AuthenticationFailed({"data": "expired_token.", "message": 'Please login again.'})
+        # token = CustomToken.objects.get(user=request.user)
+        # if token.expires and token.is_expired():
+        #     raise AuthenticationFailed({"data": "expired_token.", "message": 'Please login again.'})
         
         products = Product.objects.all()
         
        
         # Pagination
-        default_limit = 10  # Set a default limit value
+        default_limit = 100  # Set a default limit value
         try:
             limit = int(request.query_params.get('limit', default_limit))
             if limit < 0:
@@ -183,12 +185,12 @@ def productListApi(request):
 
 # Products Details API
 @api_view(['GET'])
-@authentication_classes([TokenAuthentication])
-@permission_classes([permissions.IsAuthenticated])
+# @authentication_classes([TokenAuthentication])
+# @permission_classes([permissions.IsAuthenticated])
 def lastProducts(request):
-    token = CustomToken.objects.get(user=request.user)
-    if token.expires and token.is_expired():
-        raise AuthenticationFailed({"data":"expired_token.", "message":'Please login again.'})
+    # token = CustomToken.objects.get(user=request.user)
+    # if token.expires and token.is_expired():
+    #     raise AuthenticationFailed({"data":"expired_token.", "message":'Please login again.'})
 
     products = Product.objects.order_by('-created_at')[:10]
     data = ProductSerializer(products, many=True).data
@@ -202,12 +204,7 @@ def lastProducts(request):
     return Response({'data':data})
     
 @api_view(['GET'])
-@authentication_classes([TokenAuthentication])
-@permission_classes([permissions.IsAuthenticated])
 def productDetailsApi(request, id):
-    token = CustomToken.objects.get(user=request.user)
-    if token.expires and token.is_expired():
-        raise AuthenticationFailed({"data":"expired_token.", "message":'Please login again.'})
     productDetails = Product.objects.get(id=id)
     prodSubCategory = productDetails.prodSubCategory
     data = ProductSerializer(productDetails).data
@@ -279,39 +276,10 @@ def productCreateVendorApi(request):
     
     if serializer.is_valid():
     
-    
+        serializer.save()
         prod = ProductSerializer(product)
         # if user send new image
-        if 'prodImageThumbnail' in request.data and request.data['prodImageThumbnail'] is not None:
-                # if user has already image on drive
-                if serializer.validated_data.get('prodImageThumbnail') is not None:
-                    delete_photos(f"{product.id}.png", "1bzm8Xuenx4NVyxmJUTV6n5mpmbFrVqg1")
-                           
-                # upload new image
-                media_folder = os.path.join(os.getcwd(), "media/product")
-                # save new url
-                Url_Image = upload_photo(os.path.join(media_folder, os.path.basename(serializer['prodImageThumbnail'].value)),f"{product.id}.png", "1bzm8Xuenx4NVyxmJUTV6n5mpmbFrVqg1")
-                product.prodImageUrl = Url_Image
-                product.prodImageUrl = Url_Image
-                product.save()
-                
-                # remove image from server
-                if os.path.exists(media_folder):
-                    for file_name in os.listdir(media_folder):
-                        file_path = os.path.join(media_folder, file_name)
-                        try:
-                            if os.path.isfile(file_path):
-                                if file_name == serializer['prodImageThumbnail'].value:
-                                    os.remove(file_path)
-                                    print(f"Deleted: {file_path}")
-                                    break
-                            else:
-                                print(f"Skipped: {file_path} (not a file)")
-                        except Exception as e:
-                            print(f"Error deleting {file_path}: {e}")
-                else:
-                    print("Folder does not exist.")
-
+    
 
         return Response({"product" : prod.data}, status=status.HTTP_201_CREATED)
     
@@ -349,46 +317,12 @@ def productUpdateDeleteApi(request, id):
         if serializer.is_valid():
             serializer.save()
 
-            # if user send new image
-            if 'prodImageThumbnail' in request.data and request.data['prodImageThumbnail'] is not None:
-                
-                # if user has already image on drive
-                if serializer.validated_data.get('prodImageThumbnail') is not None:
-                    delete_photos(f"{product.id}.png", "1bzm8Xuenx4NVyxmJUTV6n5mpmbFrVqg1")
-                           
-                # upload new image
-                media_folder = os.path.join(os.getcwd(), "media/product")
-                # save new url
-                Url_Image = upload_photo(os.path.join(media_folder, os.path.basename(serializer['prodImageThumbnail'].value)),f"{product.id}.png", "1bzm8Xuenx4NVyxmJUTV6n5mpmbFrVqg1")
-                product.prodImageUrl = Url_Image
-                product.save()
-                
-                # remove image from server
-                if os.path.exists(media_folder):
-                    for file_name in os.listdir(media_folder):
-                        file_path = os.path.join(media_folder, file_name)
-                        try:
-                            if os.path.isfile(file_path):
-                                os.remove(file_path)
-                                print(f"Deleted: {file_path}")
-                            else:
-                                print(f"Skipped: {file_path} (not a file)")
-                        except Exception as e:
-                            print(f"Error deleting {file_path}: {e}")
-                else:
-                    print("Folder does not exist.")
-
             product = Product.objects.get(id=id)
             serializer = ProductSerializer(product)
             return Response({'message': 'Product Updated Successfully', "product":serializer.data}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     elif request.method == 'DELETE':
-        # DELETE: Delete the existing product belonging to the authenticated vendor
-        try:
-            delete_photos(f"{product.id}.png", "1bzm8Xuenx4NVyxmJUTV6n5mpmbFrVqg1")
-        except Exception as e:  
-            print(f"Error in deleting image of product {product.id}.png from drive")
         product.delete()
         return Response({'message': 'Product deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
 
@@ -513,7 +447,6 @@ def product_rat(request,id):
 
     return JsonResponse({'id': product.id, 'product': product.prodName, 'average_Rate': result})
 #----------------------------------- Top 6 Rating ------------------------------
-
 def top_rating(request):
     products = Product.objects.all()
 
@@ -523,25 +456,18 @@ def top_rating(request):
     for item in top_rated_products:
         product_id = item['rateProduct__id']
         average_rating = item['average_rating']
-        product_name = Product.objects.get(id=product_id).prodName
-        product_price = Product.objects.get(id=product_id).prodPrice
-        prodDescription = Product.objects.get(id=product_id).prodDescription
-        prodStock = Product.objects.get(id=product_id).prodStock
-        prodOnSale = Product.objects.get(id=product_id).prodOnSale
-        prodDiscountPercentage = Product.objects.get(id=product_id).prodDiscountPercentage
-        prodImageUrl = Product.objects.get(id=product_id).prodImageUrl
-        created_at = Product.objects.get(id=product_id).created_at
+        product = Product.objects.get(id=product_id)
         top_rated_products_list.append({
             'product_id': product_id,
             'average_rating': average_rating,
-            'product_name': product_name,
-            'product_price': product_price,
-            'prodDescription': prodDescription,
-            'prodStock': prodStock,
-            'prodOnSale': prodOnSale,
-            'prodDiscountPercentage': prodDiscountPercentage,
-            'prodImageUrl': prodImageUrl,
-            'created_at': created_at,
+            'product_name': product.prodName,
+            'product_price': product.prodPrice,
+            'prodDescription': product.prodDescription,
+            'prodStock': product.prodStock,
+            'prodOnSale': product.prodOnSale,
+            'prodDiscountPercentage': product.prodDiscountPercentage,
+            'prodImageThumbnail': product.prodImageThumbnail.url if product.prodImageThumbnail else None,  # Serialize image URL
+            'created_at': product.created_at,
         })
 
     return JsonResponse({'top_rated_products': top_rated_products_list})
@@ -582,45 +508,65 @@ def submit_review(request, product_id):
         return JsonResponse({'reviews': rating.id})
 
 # #==========================================================Chat Bot====================================================
-# bot = ChatBot(
-#     'chatbot',
-#     read_only=False,
-#     logic_adapters=[
-#         {
-#             'import_path': 'chatterbot.logic.BestMatch',
-#             'default_response': 'Sorry, I don\'t understand.',
-#             'maximum_similarity_threshold': 0.90
-#         }
-#     ]
-# )
-# list_to_train = [
+bot = ChatBot(
+    'chatbot',
+    read_only=False,
+    logic_adapters=[
+        {
+            'import_path': 'chatterbot.logic.BestMatch',
+            'default_response': 'Sorry, I don\'t understand.',
+            'maximum_similarity_threshold': 0.90
+        }
+    ]
+)
+list_to_train = [
    
    
-#     "Hello",
-#     "Hello,friend",
-     
-#     "could you explain to me this website",
-#     "this website for handmade , the seller will display the product on website, and you have the option to choose one of the products you like",
-    
-#     "how can i buy",
-#     "first you need to register as a customer then search for the product after that choose it , pay the amount and it will reach to you on time",
-    
-#     "how to know the quality of this product",
-#     "there is an averege review for each product and also after you get the product you can submit a review",
-    
-#     "i need to display my product", 
-#     "register on website as a vendor , fillout you data , you will be able to find add products , click on it and you will be able to add any products that you need", 
-     
-    
-# ]
-# list_trainer = ListTrainer(bot)
-# list_trainer.train(list_to_train)
+    "Hello",
+"Hello there!",
 
-# @csrf_exempt
-# def get_response(request):
-#     user_message = request.POST.get('userMessage')
-#     if user_message:
-#         chat_response = str(bot.get_response(user_message))
-#     else:
-#         chat_response = "Please provide a 'userMessage' parameter."
-#     return JsonResponse({'response': chat_response})
+"Is this website secure for making transactions?",
+"Yes, our website employs industry-standard security measures to ensure safe transactions.",
+
+"What payment methods are accepted?",
+"We accept various payment methods including credit/debit cards, PayPal, and bank transfers.",
+
+"How long does shipping usually take?",
+"Shipping times vary depending on your location and the product. You can find estimated delivery times during the checkout process.",
+
+"What if I'm not satisfied with my purchase?",
+"We have a return policy in place. If you're not satisfied with your purchase, you can return it within a certain timeframe for a refund or exchange.",
+
+"Are there any discounts or promotions available?",
+"We regularly offer discounts and promotions. You can subscribe to our newsletter or follow us on social media to stay updated on the latest deals.",
+
+"How can I track my order?",
+"Once your order is shipped, you'll receive a tracking number via email. You can use this tracking number to monitor the status of your delivery.",
+
+"Do you offer international shipping?",
+"Yes, we offer international shipping to many countries. Shipping rates and times may vary depending on the destination.",
+
+"Can I cancel my order?",
+"You can cancel your order before it is shipped. Once it's shipped, you'll need to follow our return process for a refund.",
+
+"What if the product I want is out of stock?",
+"If a product is out of stock, you can sign up for notifications to be alerted when it's back in stock. Alternatively, you can contact customer support for assistance."
+    
+]
+list_trainer = ListTrainer(bot)
+list_trainer.train(list_to_train)
+@csrf_exempt
+def get_response(request):
+    if request.method == 'POST':
+        body_unicode = request.body.decode('utf-8')
+        body = json.loads(body_unicode)
+        user_message = body.get('userMessage')
+        print('User message:', user_message)
+        if user_message:
+            chat_response = str(bot.get_response(user_message))
+        else:
+            chat_response = "Please provide a 'userMessage' parameter."
+        return JsonResponse({'response': chat_response})
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
