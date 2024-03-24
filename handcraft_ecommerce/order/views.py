@@ -55,6 +55,7 @@ def delete_order(request, pk):
 @permission_classes([IsAuthenticated])
 @authentication_classes([TokenAuthentication])
 def new_order(request):
+    user = request.user
     # Retrieve the cart associated with the current user
     cart = get_object_or_404(Cart, user=request.user)
 
@@ -65,6 +66,8 @@ def new_order(request):
     # Extract address and phone number from the request data
     address = request.data.get("address")
     phone_number = request.data.get("phone_number")
+     # Delete all unpaid orders for the user
+    Order.objects.filter(payment_status=PaymentStatus.UNPAID, is_paid=False, user=user).delete()
 
     # Create the order
     order = Order.objects.create(
@@ -72,7 +75,8 @@ def new_order(request):
         phone_number=phone_number,
         payment_status='Unpaid',
         payment_mode='COD',
-        is_paid=False
+        is_paid=False,
+        user_id=user.id
     )
 
     # Extract cart items and create order items
@@ -93,46 +97,50 @@ def new_order(request):
     return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
-from cart.models import CartItem
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-@authentication_classes([TokenAuthentication])
-def handle_payment_success(request):
-    if request.method == 'POST':
-        user = request.user
-        # Assuming you have a Cart model associated with the user
+#payment
+stripe.api_key=settings.STRIPE_SECRET_KEY
+success_url = settings.SITE_URL 
+API_URL="http/locahost:8000"
+class CreateCheckOutSession(APIView):
+    def post(self, request, *args, **kwargs):
+        order_id = kwargs.get("pk")  # Get the order ID from URL parameters
         try:
-            cart_items = CartItem.objects.filter(cart__user=user)
-            cart_items.delete()
-            return Response({"message": "Cart cleared successfully."}, status=status.HTTP_200_OK)
-        except CartItem.DoesNotExist:
-            return Response({"message": "Cart is already empty."}, status=status.HTTP_400_BAD_REQUEST)
-    else:
-        return Response({"detail": "Method not allowed."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+            order = Order.objects.get(id=order_id)  # Retrieve the order from the database
+
+            # Create a Stripe Checkout session
+            checkout_session = stripe.checkout.Session.create(
+                line_items=[
+                    {
+                        # Provide the exact Price ID (for example, pr_1234) of the product you want to sell
+                        'price_data': {
+                            'currency': 'usd',
+                            'unit_amount': int(order.total_price) * 100,
+                            'product_data': {
+                                'name': str(order.pk),
+                                # 'images': [f"{API_URL}/{orderitem_id.product_image}"]
+                            }
+                        },
+                        'quantity': 1,
+                    },
+                ],
+                metadata={"order_id": order.id},
+                mode='payment',
+                success_url=settings.SITE_URL + 'handle-payment-success/',  # Updated success_url
+                cancel_url=settings.SITE_URL + '?canceled=true',
+                
 
 
-# @api_view(['POST'])
-# @permission_classes([IsAuthenticated])
-# @authentication_classes([TokenAuthentication])
-# def paid(request):
-#     try:
-#         payload = request.data
-#         # Retrieve order ID from the payload (assuming it's provided by Stripe)
-#         order_id = payload['metadata']['order_id']
-#         order = Order.objects.get(id=order_id)
+       
+            )
 
-#         # Update order status or any other necessary actions
-#         order.status = 'Paid'
-#         order.save()
-
-#         return Response({'message': 'Order payment status updated to Paid.'}, status=status.HTTP_200_OK)
-
-#     except Order.DoesNotExist:
-#         return JsonResponse({'error': 'Order not found'}, status=404)
-
-#     except Exception as e:
-#         return JsonResponse({'error': 'Something went wrong while handling paid order', 'details': str(e)}, status=500)
-
+            # Redirect the user to the Stripe Checkout URL
+            return redirect(checkout_session.url)
+        
+        except Order.DoesNotExist:
+            return JsonResponse({'error': 'Order not found'}, status=404)
+        
+        except Exception as e:
+            return JsonResponse({'error': 'Something went wrong while creating stripe session', 'details': str(e)}, status=500)
 
 
 # from .models import PaymentStatus
@@ -191,36 +199,42 @@ def handle_payment_success(request):
 #         return JsonResponse({'error': 'Something went wrong while handling payment success', 'details': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-# @api_view(['GET'])
-# @permission_classes([IsAuthenticated])
-# def paid_products_list(request):
-#     try:
-#         # Retrieve paid orders
-#         paid_orders = Order.objects.filter(payment_status='Paid')
+from django.db import transaction
+from .models import PaymentStatus
+from cart.models import CartItem
 
-#         # Prepare response data
-#         paid_products_info = []
-#         for order in paid_orders:
-#             order_items = OrderItem.objects.filter(order=order)
-#             for order_item in order_items:
-#                 product = order_item.product
-#                 quantity = order_item.quantity
-#                 remaining_stock = product.prodStock
-#                 customer_details = {
-#                     'name': order.address,  # Assuming the address contains the customer's name
-#                     'phone_number': order.phone_number,
-#                     # Add more customer details if needed
-#                 }
-#                 paid_products_info.append({
-#                     'product_name': product.prodName,
-#                     'quantity': quantity,
-#                     'remaining_stock': remaining_stock,
-#                     'customer_details': customer_details
-#                 })
+@api_view(['POST'])  
+@permission_classes([IsAuthenticated])
+@authentication_classes([TokenAuthentication])
+def handle_payment_success(request):
+    if request.method == 'POST':
+        user = request.user
+        try:
+            with transaction.atomic():
+               
+                # Retrieve the first remaining unpaid order for the user
+                order = Order.objects.filter(payment_status=PaymentStatus.UNPAID, is_paid=False, user=user).first()
 
-#         return Response({'paid_products_info': paid_products_info}, status=status.HTTP_200_OK)
+                if order:
+                    # Update order status to Paid and mark it as paid
+                    order.payment_status = PaymentStatus.PAID
+                    order.is_paid = True
+                    order.save()
 
-#     except Exception as e:
-#         return Response({'error': 'Something went wrong while retrieving paid products', 'details': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
-    
+                    # Clear the items from the user's cart
+                    CartItem.objects.filter(cart__user=user).delete()
+                    for order_item in order.orderitems.all():
+                        product = order_item.product
+                        if product.prodStock >= order_item.quantity:
+                            product.prodStock -= order_item.quantity
+                            product.save()
+                        else:
+                            print(f"Stock Out! Not enough prodStock for {product.prodName}.")
+
+                    return Response({"message": "Payment success. Order marked as paid and cart cleared successfully."}, status=status.HTTP_200_OK)
+                else:
+                    return Response({"message": "No unpaid order found for the user."}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    else:
+        return Response({"detail": "Method not allowed."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
