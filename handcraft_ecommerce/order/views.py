@@ -18,14 +18,6 @@ from django.http import JsonResponse
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 @authentication_classes([TokenAuthentication])
-def get_orders(request):
-    orders = Order.objects.all()
-    serializer = OrderSerializer(orders, many=True)
-    return Response({'orders': serializer.data})
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-@authentication_classes([TokenAuthentication])
 def get_order(request, pk):
     order = get_object_or_404(Order, id=pk)
     serializer = OrderSerializer(order)
@@ -76,7 +68,8 @@ def new_order(request):
         payment_status='Unpaid',
         payment_mode='COD',
         is_paid=False,
-        user_id=user.id
+        user_id=user.id,
+        status=Order.PENDING_STATE
     )
 
     # Extract cart items and create order items
@@ -143,62 +136,6 @@ class CreateCheckOutSession(APIView):
             return JsonResponse({'error': 'Something went wrong while creating stripe session', 'details': str(e)}, status=500)
 
 
-# from .models import PaymentStatus
-# @api_view(['POST'])  # Ensure it accepts POST requests
-# @permission_classes([IsAuthenticated])
-# @authentication_classes([TokenAuthentication])
-# def handle_payment_success(request):
-#     if request.method != 'POST':
-#         return Response({'error': 'Method not allowed. Only POST requests are allowed.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
-
-#     try:
-#         payload = request.data
-#         # Retrieve order ID from the payload (assuming it's provided by Stripe)
-#         order_id = payload['metadata']['order_id']
-#         order = Order.objects.get(id=order_id)
-        
-#         # Mark the order as paid
-#         order.payment_status = PaymentStatus.PAID
-#         order.is_paid = True
-#         order.save()
-
-#         # Clear the cart associated with the user
-#         cart = get_object_or_404(Cart, user=request.user)
-#         # cart.cartitems.all().delete()
-
-#         # Retrieve order items
-#         order_items = OrderItem.objects.filter(order=order)
-
-#         # Prepare response data
-#         paid_products_info = []
-#         for order_item in order_items:
-#             product = order_item.product
-#             quantity = order_item.quantity
-#             remaining_stock = product.prodStock
-#             customer_details = {
-#                 'name': order.address,  # Assuming the address contains the customer's name
-#                 'phone_number': order.phone_number,
-#                 # Add more customer details if needed
-#             }
-#             paid_products_info.append({
-#                 'product_name': product.prodName,
-#                 'quantity': quantity,
-#                 'remaining_stock': remaining_stock,
-#                 'customer_details': customer_details
-#             })
-
-#         # Update order status or any other necessary actions
-
-#         return Response({'message': 'Payment successful and cart cleared.', 'paid_products_info': paid_products_info}, status=status.HTTP_200_OK)
-    
-
-#     except Order.DoesNotExist:
-#         return JsonResponse({'error': 'Order not found'}, status=status.HTTP_404_NOT_FOUND)
-
-#     except Exception as e:
-#         return JsonResponse({'error': 'Something went wrong while handling payment success', 'details': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
 from django.db import transaction
 from .models import PaymentStatus
 from cart.models import CartItem
@@ -219,6 +156,7 @@ def handle_payment_success(request):
                     # Update order status to Paid and mark it as paid
                     order.payment_status = PaymentStatus.PAID
                     order.is_paid = True
+                    order.status=Order.SHIPPED_STATE
                     order.save()
 
                     # Clear the items from the user's cart
@@ -238,3 +176,103 @@ def handle_payment_success(request):
             return Response({"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     else:
         return Response({"detail": "Method not allowed."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+
+# customer 
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+@authentication_classes([TokenAuthentication])
+def get_customer_orders(request):
+    user = request.user  # Get the authenticated user
+
+    # Filter orders for the authenticated user
+    orders = Order.objects.filter(user=user)
+
+    order_data = []
+    for order in orders:
+        order_items = order.orderitems.all()
+        items_data = []
+        for item in order_items:
+            items_data.append({
+                'product_name': item.product.prodName,
+                'quantity': item.quantity,
+                'product_image_thumbnail': item.product.prodImageThumbnail.url if item.product.prodImageThumbnail else None,
+                'item_id':item.product.id
+            })
+        order_data.append({
+            'order_id': order.id,
+            'address': order.address,
+            'phone_number': order.phone_number,
+            'payment_status': order.payment_status,
+            'payment_mode': order.payment_mode,
+            'is_paid': order.is_paid,
+            'user': order.user.id if order.user else None,
+            'status': order.status,
+            'order_items': items_data,  # Include the list of order items
+            'total_price': order.total_price
+        })
+
+    return Response({'orders': order_data})
+
+
+
+
+# vendor 
+from account.models import User
+from account.serializers import *
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+@authentication_classes([TokenAuthentication])
+def get_vendor_orders(request):
+    vendor = request.user  # Assuming the vendor is associated with the authenticated user
+
+    # Filter products created by the vendor
+    products = Product.objects.filter(prodVendor=vendor)
+
+    # Get orders associated with these products
+    orders = Order.objects.filter(orderitems__product__in=products).distinct()
+
+    order_data = []
+    for order in orders:
+        # Get order items associated with the current order
+        order_items = order.orderitems.filter(product__prodVendor=vendor)
+
+        # Initialize list to hold product details for each order item
+        product_details = []
+
+        # Initialize total price for the order
+        total_price = 0
+
+        # Fetch product details for each order item
+        for order_item in order_items:
+            product_details.append({
+                'product_name': order_item.product.prodName,
+                'product_price': order_item.product.prodPrice,
+                'product_description': order_item.product.prodDescription,
+                'product_image_thumbnail': order_item.product.prodImageThumbnail.url if order_item.product.prodImageThumbnail else None,
+                'stock': order_item.product.prodStock,
+                'quantity': order_item.quantity,
+            })
+
+            # Add the price of each product to the total price
+            total_price += order_item.product.prodPrice
+        
+        # Serialize user object
+        user_data = UserSerializer(order.user).data
+
+        # Construct order data
+        order_data.append({
+            'order_id': order.id,
+            'address': order.address,
+            'phone_number': order.phone_number,
+            'payment_status': order.payment_status,
+            'payment_mode': order.payment_mode,
+            'is_paid': order.is_paid,
+            'user': user_data,
+            'status': order.status,
+            'total_price': total_price,  # Include total price for all products in the order
+            'products': product_details  # Include product details for each order item
+        })
+
+    return Response({'orders': order_data})
