@@ -274,16 +274,16 @@ def updateproduct(request, id):
         prodUser = Product.objects.filter(id=id)
         if prodUser.exists():
 
-            if 'prodImageThumbnail' in request.FILES:
+            if 'image' in request.FILES:
             # Delete old image if it exists
-                if prodUser.prodImageThumbnail:
-                    media_file = os.path.join(os.getcwd(), prodUser.prodImageThumbnail.path)
+                if prodUser.image:
+                    media_file = os.path.join(os.getcwd(), prodUser.image.path)
                     if os.path.isfile(media_file):
                         os.remove(media_file)
                         print(f"Deleted: {media_file}")
 
                 # Update user with new data including image
-                prodUser.prodImageThumbnail = request.FILES['prodImageThumbnail']
+                prodUser.image = request.FILES['image']
 
             prodUser.update(
                 prodVendor=request.POST.get('prodVendor'),
@@ -308,13 +308,18 @@ def updateproduct(request, id):
     else:
         return JsonResponse({'message': 'Invalid request method'}, status=405)
 
+
 # @csrf_exempt
 # def updateproduct(request, id):
 #     if request.method == 'POST':
-#         try:
-#             prodUser = Product.objects.get(id=id)
-#         except ObjectDoesNotExist:
-#             return JsonResponse({'message': 'Product not found'}, status=404)
+#         prodUser = get_object_or_404(Product, id=id)
+        
+#         prodVendor_name = request.POST.get('prodVendor')
+#         prodSubCategory_name = request.POST.get('prodSubCategory')
+        
+#         # Retrieve Vendor and SubCategory objects
+#         prodVendor = get_object_or_404(User.email, name=prodVendor_name)
+#         prodSubCategory = get_object_or_404(SubCategory, name=prodSubCategory_name)
 
 #         if 'image' in request.FILES:
 #             # Delete old image if it exists
@@ -327,23 +332,25 @@ def updateproduct(request, id):
 #             # Update user with new data including image
 #             prodUser.image = request.FILES['image']
 
-#         prodUser.prodVendor = request.POST.get('prodVendor')
+#         # Update product fields with new values
+#         prodUser.prodVendor = prodVendor
 #         prodUser.prodName = request.POST.get('prodName')
 #         prodUser.prodPrice = request.POST.get('prodPrice')
 #         prodUser.prodDescription = request.POST.get('prodDescription')
-#         prodUser.prodSubCategory = request.POST.get('prodSubCategory')
+#         prodUser.prodSubCategory = prodSubCategory
 #         prodUser.prodStock = request.POST.get('prodStock')
 #         prodUser.prodOnSale = request.POST.get('prodOnSale')
 #         prodUser.prodDiscountPercentage = request.POST.get('prodDiscountPercentage')
-
 #         prodUser.prodImageThumbnail = request.FILES.get('prodImageThumbnail')
 #         prodUser.prodImageOne = request.FILES.get('prodImageOne')
 #         prodUser.prodImageTwo = request.FILES.get('prodImageTwo')
 #         prodUser.prodImageThree = request.FILES.get('prodImageThree')
 #         prodUser.prodImageFour = request.FILES.get('prodImageFour')
 #         prodUser.prodImageUrl = request.FILES.get('prodImageUrl')
-
+        
+#         # Save the updated product
 #         prodUser.save()
+        
 #         return JsonResponse({'message': 'Product updated successfully'})
 #     else:
 #         return JsonResponse({'message': 'Invalid request method'}, status=405)
