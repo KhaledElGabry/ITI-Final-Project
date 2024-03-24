@@ -204,12 +204,7 @@ def lastProducts(request):
     return Response({'data':data})
     
 @api_view(['GET'])
-@authentication_classes([TokenAuthentication])
-@permission_classes([permissions.IsAuthenticated])
 def productDetailsApi(request, id):
-    token = CustomToken.objects.get(user=request.user)
-    if token.expires and token.is_expired():
-        raise AuthenticationFailed({"data":"expired_token.", "message":'Please login again.'})
     productDetails = Product.objects.get(id=id)
     prodSubCategory = productDetails.prodSubCategory
     data = ProductSerializer(productDetails).data
