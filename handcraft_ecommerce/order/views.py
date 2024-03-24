@@ -14,6 +14,7 @@ import stripe
 from django.shortcuts import render, redirect
 from rest_framework.views import APIView
 from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -91,9 +92,11 @@ def new_order(request):
 
 
 #payment
+
 stripe.api_key=settings.STRIPE_SECRET_KEY
 success_url = settings.SITE_URL 
-API_URL="http/locahost:8000"
+API_URL="http://127.0.0.1:3000"
+# @csrf_exempt
 class CreateCheckOutSession(APIView):
     def post(self, request, *args, **kwargs):
         order_id = kwargs.get("pk")  # Get the order ID from URL parameters
