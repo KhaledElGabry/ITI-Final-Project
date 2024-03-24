@@ -9,6 +9,9 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth import authenticate , login , logout
 from django. contrib import messages
 import os
+from django.shortcuts import get_object_or_404
+from django.core.exceptions import ObjectDoesNotExist
+
 #===================================== log in / log out =================================================
 @csrf_exempt
 def admin_login(request):
@@ -33,12 +36,32 @@ def admin_logout(request):
 
 
 #======================================= User ===================================================================
+#-------------------------------------- Show specific user ------------------------------------------------------
+@csrf_exempt
+def specific_user(request, id):
+    try:
+        user = User.objects.get(id=id)
+        user_data = {
+            'ID': user.id,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'email': user.email,
+            'phone': user.phone,
+            'usertype': user.usertype,
+            'Photo_URL': user.imageUrl,
+            # 'Image': user.image,
+        }
+        return JsonResponse({'user': user_data})
+    except User.DoesNotExist:
+        return JsonResponse({'error': 'User not found'}, status=404)
+
 #---------------------------------------details------------------------------------------------------------------
 def userDetails(request):
     users = User.objects.all()
     users_list = []
     for user in users:
         users_list.append({
+            'ID': user.id,
             'first_name': user.first_name,
             'last_name': user.last_name,
             'email': user.email,
@@ -70,10 +93,10 @@ def useradd(request):
                 address=request.POST.get('address', ''),
                 shopname=request.POST.get('shopname', ''),
                 ssn=request.POST.get('ssn', ''),
-                # imageUrl=request.POST.get('imageUrl', ''),
                 image=request.FILES.get('image', ''),
                 
             )
+            print(addUser.password)
             addUser.save()
             return JsonResponse({'message': 'User added successfully'})
     else:
@@ -89,31 +112,37 @@ def delete(request,id):
 @csrf_exempt
 def update(request, id):
     if request.method == 'POST':
-        updateUser = User.objects.filter(id=id)
-        if updateUser.exists():
-            # if updateUser.image and 'image' in request.FILES:
-            #     media_file = os.path.join(os.getcwd(), updateUser.image.path)
-            #     if os.path.isfile(media_file):
-            #         os.remove(media_file)
-            #         print(f"Deleted: {media_file}")
-            updateUser.update(
-                first_name=request.POST.get('first_name', ''),
-                last_name=request.POST.get('last_name', ''),
-                email=request.POST.get('email', ''),
-                phone=request.POST.get('phone', ''),
-                usertype=request.POST.get('usertype', ''),
-                password=request.POST.get('password', ''),
-                address=request.POST.get('address', ''),
-                shopname=request.POST.get('shopname', ''),
-                ssn=request.POST.get('ssn', ''),
-                image=request.FILES.get('image', ''),
-                
-            )
-            return JsonResponse({'message': 'User updated successfully'})
-        else:
+        try:
+            updateUser = User.objects.get(id=id)  # Use get() instead of filter()
+        except User.DoesNotExist:
             return JsonResponse({'message': 'User not found'}, status=404)
+        
+        if 'image' in request.FILES:
+            # Delete old image if it exists
+            if updateUser.image:
+                media_file = os.path.join(os.getcwd(), updateUser.image.path)
+                if os.path.isfile(media_file):
+                    os.remove(media_file)
+                    print(f"Deleted: {media_file}")
+
+            # Update user with new data including image
+            updateUser.image = request.FILES['image']
+        
+        # Update other fields
+        updateUser.first_name = request.POST.get('first_name', '')
+        updateUser.last_name = request.POST.get('last_name', '')
+        updateUser.email = request.POST.get('email', '')
+        updateUser.phone = request.POST.get('phone', '')
+        updateUser.usertype = request.POST.get('usertype', '')
+        updateUser.password = request.POST.get('password', '')
+        updateUser.address = request.POST.get('address', '')
+        updateUser.shopname = request.POST.get('shopname', '')
+        updateUser.ssn = request.POST.get('ssn', '')
+        updateUser.save()
+
+        return JsonResponse({'message': 'User updated successfully'})
     else:
-        return JsonResponse({'message': 'Invalid request method'}, status=405)    
+        return JsonResponse({'message': 'Invalid request method'}, status=405)
 #------------------------------------------------------------------------------------------------
     
 
@@ -122,38 +151,52 @@ def update(request, id):
 
 
 
+
+
 #================================================= Product =============================================================  
+#---------------------------------------specific product------------------------------------------------------------------
+@csrf_exempt
+def specific_product(request, id):
+    try:
+        product = Product.objects.get(id=id)
+        product_dict = {
+            'id': product.id,
+            'prodName': product.prodName,
+            'prodPrice': product.prodPrice,
+            'prodDescription': product.prodDescription,
+            'prodStock': product.prodStock,
+            'prodOnSale': product.prodOnSale,
+            'prodDiscountPercentage': product.prodDiscountPercentage,
+            'prodImageUrl': product.prodImageUrl,
+            'created_at': product.created_at,
+        }
+        # Accessing fields from related User object
+        if product.prodVendor:
+            product_dict['prodVendor'] = {
+                'username': product.prodVendor.username,
+                'email': product.prodVendor.email,
+                # Add more fields as needed
+            }
+        if product.prodSubCategory:
+            product_dict['prodSubCategory'] = {
+                'subCateName': product.prodSubCategory.subCateName,  # Assuming SubCategory has a 'name' attribute
+                # Add more fields as needed
+            }
+        return JsonResponse({'Product': product_dict})
+    except Product.DoesNotExist:
+        return JsonResponse({'error': 'Product not found'}, status=404)
+
+
+
+
 #---------------------------------------details------------------------------------------------------------------
 def productDetails(request):
-    # products = Product.objects.all()
-    # product_list = []
-    # for prod in products:
-    #     product_dict = {
-    #         'prodSubCategory': prod.prodSubCategory,
-    #         'prodName': prod.prodName,
-    #         'prodPrice': prod.prodPrice,
-    #         'prodDescription': prod.prodDescription,
-    #         'prodStock': prod.prodStock,
-    #         'prodOnSale': prod.prodOnSale,
-    #         'prodDiscountPercentage': prod.prodDiscountPercentage,
-    #         'prodImageUrl': prod.prodImageUrl,
-    #         'created_at': prod.created_at,
-    #     }
-    #     # Accessing fields from related User object
-    #     if prod.prodVendor:
-    #         product_dict['prodVendor'] = {
-    #             'username': prod.prodVendor.username,
-    #             'email': prod.prodVendor.email,
-    #             # Add more fields as needed
-    #         }
-    #     product_list.append(product_dict)
-
-    # return JsonResponse({'Products': product_list})
 
     products = Product.objects.all()
     product_list = []
     for prod in products:
         product_dict = {
+            'id': prod.id,
             'prodName': prod.prodName,
             'prodPrice': prod.prodPrice,
             'prodDescription': prod.prodDescription,
@@ -201,12 +244,13 @@ def productadd(request):
                 prodStock=request.POST.get('prodStock'),
                 prodOnSale=request.POST.get('prodOnSale'),
                 prodDiscountPercentage=request.POST.get('prodDiscountPercentage'),
-                prodImageThumbnail=request.POST.get('prodImageThumbnail'),
-                prodImageOne=request.POST.get('prodImageOne'),
-                prodImageTwo=request.POST.get('prodImageTwo'),
-                prodImageThree=request.POST.get('prodImageThree'),
-                prodImageFour=request.POST.get('prodImageFour'),
-                prodImageUrl=request.POST.get('prodImageUrl'),
+                prodImageThumbnail=request.FILES.get('prodImageThumbnail'),
+                prodImageOne=request.FILES.get('prodImageOne'),
+                prodImageTwo=request.FILES.get('prodImageTwo'),
+                prodImageThree=request.FILES.get('prodImageThree'),
+                prodImageFour=request.FILES.get('prodImageFour'),
+                prodImageUrl=request.FILES.get('prodImageUrl'),
+                
                 created_at=timezone.now()  # or parse the provided date string
             )
             addprod.save()
@@ -229,27 +273,92 @@ def updateproduct(request, id):
     if request.method == 'POST':
         prodUser = Product.objects.filter(id=id)
         if prodUser.exists():
+
+            if 'image' in request.FILES:
+            # Delete old image if it exists
+                if prodUser.image:
+                    media_file = os.path.join(os.getcwd(), prodUser.image.path)
+                    if os.path.isfile(media_file):
+                        os.remove(media_file)
+                        print(f"Deleted: {media_file}")
+
+                # Update user with new data including image
+                prodUser.image = request.FILES['image']
+
             prodUser.update(
                 prodVendor=request.POST.get('prodVendor'),
                 prodName=request.POST.get('prodName'),
                 prodPrice=request.POST.get('prodPrice'),
                 prodDescription=request.POST.get('prodDescription'),
-                # prodSubCategory=request.POST.get('prodSubCategory'),
+                prodSubCategory=request.POST.get('prodSubCategory'),
                 prodStock=request.POST.get('prodStock'),
                 prodOnSale=request.POST.get('prodOnSale'),
                 prodDiscountPercentage=request.POST.get('prodDiscountPercentage'),
-                prodImageThumbnail=request.POST.get('prodImageThumbnail'),
-                prodImageOne=request.POST.get('prodImageOne'),
-                prodImageTwo=request.POST.get('prodImageTwo'),
-                prodImageThree=request.POST.get('prodImageThree'),
-                prodImageFour=request.POST.get('prodImageFour'),
-                prodImageUrl=request.POST.get('prodImageUrl'),
+
+                prodImageThumbnail=request.FILES.get('prodImageThumbnail'),
+                prodImageOne=request.FILES.get('prodImageOne'),
+                prodImageTwo=request.FILES.get('prodImageTwo'),
+                prodImageThree=request.FILES.get('prodImageThree'),
+                prodImageFour=request.FILES.get('prodImageFour'),
+                prodImageUrl=request.FILES.get('prodImageUrl'),
             )
             return JsonResponse({'message': 'product updated successfully'})
         else:
             return JsonResponse({'message': 'product not found'}, status=404)
     else:
-        return JsonResponse({'message': 'Invalid request method'}, status=405)    
+        return JsonResponse({'message': 'Invalid request method'}, status=405)
+
+
+# @csrf_exempt
+# def updateproduct(request, id):
+#     if request.method == 'POST':
+#         prodUser = get_object_or_404(Product, id=id)
+        
+#         prodVendor_name = request.POST.get('prodVendor')
+#         prodSubCategory_name = request.POST.get('prodSubCategory')
+        
+#         # Retrieve Vendor and SubCategory objects
+#         prodVendor = get_object_or_404(User.email, name=prodVendor_name)
+#         prodSubCategory = get_object_or_404(SubCategory, name=prodSubCategory_name)
+
+#         if 'image' in request.FILES:
+#             # Delete old image if it exists
+#             if prodUser.image:
+#                 media_file = os.path.join(os.getcwd(), prodUser.image.path)
+#                 if os.path.isfile(media_file):
+#                     os.remove(media_file)
+#                     print(f"Deleted: {media_file}")
+
+#             # Update user with new data including image
+#             prodUser.image = request.FILES['image']
+
+#         # Update product fields with new values
+#         prodUser.prodVendor = prodVendor
+#         prodUser.prodName = request.POST.get('prodName')
+#         prodUser.prodPrice = request.POST.get('prodPrice')
+#         prodUser.prodDescription = request.POST.get('prodDescription')
+#         prodUser.prodSubCategory = prodSubCategory
+#         prodUser.prodStock = request.POST.get('prodStock')
+#         prodUser.prodOnSale = request.POST.get('prodOnSale')
+#         prodUser.prodDiscountPercentage = request.POST.get('prodDiscountPercentage')
+#         prodUser.prodImageThumbnail = request.FILES.get('prodImageThumbnail')
+#         prodUser.prodImageOne = request.FILES.get('prodImageOne')
+#         prodUser.prodImageTwo = request.FILES.get('prodImageTwo')
+#         prodUser.prodImageThree = request.FILES.get('prodImageThree')
+#         prodUser.prodImageFour = request.FILES.get('prodImageFour')
+#         prodUser.prodImageUrl = request.FILES.get('prodImageUrl')
+        
+#         # Save the updated product
+#         prodUser.save()
+        
+#         return JsonResponse({'message': 'Product updated successfully'})
+#     else:
+#         return JsonResponse({'message': 'Invalid request method'}, status=405)
+
+
+
+
+
 #------------------------------------------------------------------------------------------------
     
 
@@ -260,14 +369,33 @@ def updateproduct(request, id):
 
 
 
-#=============================================Category======================================================
-#---------------------------------------details------------------------------------------------------------------
 
+
+
+
+#=============================================Category======================================================
+#---------------------------------------specific category------------------------------------------------------------------
+@csrf_exempt
+def specific_category(request, id):
+    category = Category.objects.filter(id=id).first()  # Retrieve a single category by ID
+    if category:
+        category_data = {
+            'ID': category.id,
+            'cateName': category.cateName,
+            'cateDescription': category.cateDescription,
+            'cateImage': category.cateImage.url if category.cateImage else None,
+        }
+        return JsonResponse({'Category': category_data})
+    else:
+        return JsonResponse({'error': 'Category not found'}, status=404) 
+
+#---------------------------------------details------------------------------------------------------------------
 def categoryDetails(request):
     category = Category.objects.all()
     category_list = []
     for categ in category:
         category_list.append({
+            'ID': categ.id,
             'cateName': categ.cateName,
             'cateDescription': categ.cateDescription,
             'cateImage': categ.cateImage.url if categ.cateImage else None,  # Accessing the URL property
@@ -281,7 +409,7 @@ def categoryadd(request):
             addcategory = Category.objects.create(
                 cateName=request.POST.get('cateName'),
                 cateDescription=request.POST.get('cateDescription'),
-                cateImage=request.POST.get('cateImage'),
+                cateImage=request.FILES.get('cateImage'),
             )
             addcategory.save()
             return JsonResponse({'message': 'Category added successfully'})
@@ -297,21 +425,32 @@ def delcategory(request,id):
     delCategory.delete()
     return JsonResponse({'message': 'category deleted successfully'})    
 #---------------------------------------update------------------------------------------------------------------ 
+
 @csrf_exempt
 def updatecategory(request, id):
     if request.method == 'POST':
         categories = Category.objects.filter(id=id)
         if categories.exists():
-            categories.update(
-                cateName=request.POST.get('cateName'),
-                cateDescription=request.POST.get('cateDescription'),
-                cateImage=request.POST.get('cateImage'),
-            )
-            return JsonResponse({'message': 'category updated successfully'})
+            category = categories.first()  # Get the first category object
+            # Delete old image if it exists
+            if 'cateImage' in request.FILES:
+                if category.cateImage:  # Use category.cateImage instead of categories.cateImage
+                    media_file = os.path.join(os.getcwd(), category.cateImage.path)
+                    if os.path.isfile(media_file):
+                        os.remove(media_file)
+                        print(f"Deleted: {media_file}")
+
+                category.cateName = request.POST.get('cateName')
+                category.cateDescription = request.POST.get('cateDescription')
+                category.cateImage = request.FILES['cateImage']
+                category.save()  # Save the changes to the category object
+                return JsonResponse({'message': 'Category updated successfully'})
+            else:
+                return JsonResponse({'message': 'Please provide an image'}, status=400)
         else:
-            return JsonResponse({'message': 'category not found'}, status=404)
+            return JsonResponse({'message': 'Category not found'}, status=404)
     else:
-        return JsonResponse({'message': 'Invalid request method'}, status=405) 
+        return JsonResponse({'message': 'Invalid request method'}, status=405)
 #-------------------------------------------------------------------------------------------------------------------------
 
 
@@ -330,13 +469,28 @@ def updatecategory(request, id):
 
 
 #=============================================sub Category======================================================
-#---------------------------------------details------------------------------------------------------------------
+#---------------------------------------specific subcategory------------------------------------------------------------------
+@csrf_exempt
+def spcific_subcategory(request, id):
+    try:
+        sub_category = SubCategory.objects.get(id=id)  # Retrieve the specific SubCategory
+        sub_category_data = {  # Construct a dictionary containing the data of the specific subcategory
+            'ID': sub_category.id,
+            'subCateName': sub_category.subCateName,
+            'subCateDescription': sub_category.subCateDescription,
+            'subCateImage': sub_category.subCateImage.url if sub_category.subCateImage else None,
+        }
+        return JsonResponse({'sub_category': sub_category_data})
+    except SubCategory.DoesNotExist:
+        return JsonResponse({'error': 'SubCategory does not exist'}, status=404)
 
+#---------------------------------------details------------------------------------------------------------------
 def subcategoryDetails(request):
     sub_category = SubCategory.objects.all()
     sub_category_list = []
     for categ in sub_category:
         sub_category_list.append({
+            'ID': categ.id,
             'subCateName': categ.subCateName,
             'subCateDescription': categ.subCateDescription,
             'subCateImage': categ.subCateImage.url if categ.subCateImage else None,  # Accessing the URL property
@@ -350,7 +504,7 @@ def addsub_category(request):
             sub_category = SubCategory.objects.create(
                 subCateName=request.POST.get('subCateName'),
                 subCateDescription=request.POST.get('subCateDescription'),
-                subCateImage=request.POST.get('subCateImage'),
+                subCateImage=request.FILES.get('subCateImage'),
             )
             sub_category.save()
             return JsonResponse({'message': 'sub_category added successfully'})
@@ -366,20 +520,34 @@ def delsub_category(request,id):
     sub_category.delete()
     return JsonResponse({'message': 'category deleted successfully'})
 #---------------------------------------update------------------------------------------------------------------ 
+
 @csrf_exempt
 def updatesub_CateName(request, id):
     if request.method == 'POST':
-        sub_category = SubCategory.objects.filter(id=id)
-        if sub_category.exists():
-            sub_category.update(
-                subCateName=request.POST.get('subCateName'),
-                subCateDescription=request.POST.get('subCateDescription'),
-                subCateImage=request.POST.get('subCateImage'),
-            )
-            return JsonResponse({'message': 'subCateName updated successfully'})
-        else:
-            return JsonResponse({'message': 'subCateName not found'}, status=404)
+        try:
+            sub_category = SubCategory.objects.get(id=id)
+        except SubCategory.DoesNotExist:
+            return JsonResponse({'message': 'Subcategory not found'}, status=404)
+
+        sub_category_name = request.POST.get('subCateName')
+        sub_category_description = request.POST.get('subCateDescription')
+
+        if 'subCateImage' in request.FILES:
+            # Delete old image if it exists
+            if sub_category.subCateImage:
+                media_file = os.path.join(os.getcwd(), sub_category.subCateImage.path)
+                if os.path.isfile(media_file):
+                    os.remove(media_file)
+                    print(f"Deleted: {media_file}")
+
+            # Update user with new image
+            sub_category.subCateImage = request.FILES['subCateImage']
+
+        # Update other fields
+        sub_category.subCateName = sub_category_name
+        sub_category.subCateDescription = sub_category_description
+        sub_category.save()
+
+        return JsonResponse({'message': 'Subcategory updated successfully'})
     else:
-        return JsonResponse({'message': 'Invalid request method'}, status=405) 
-
-
+        return JsonResponse({'message': 'Invalid request method'}, status=405)
