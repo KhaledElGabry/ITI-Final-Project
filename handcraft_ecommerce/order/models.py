@@ -1,7 +1,8 @@
 from django.db import models
 from product.models import Product
 from cart.models import Cart
-
+from django.conf import settings
+from account.models import User
 class PaymentStatus(models.TextChoices):
     PAID = 'Paid'
     UNPAID = 'Unpaid'
@@ -16,7 +17,8 @@ class Order(models.Model):
     payment_status = models.CharField(max_length=30, choices=PaymentStatus.choices, default=PaymentStatus.UNPAID)
     payment_mode = models.CharField(max_length=30, choices=PaymentMode.choices, default=PaymentMode.COD)
     is_paid = models.BooleanField(default=False)
-
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    
     def __str__(self):
         return str(self.id)
 

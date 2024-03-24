@@ -16,6 +16,8 @@ from account.models import CustomToken
 from rest_framework.exceptions import AuthenticationFailed
 
 from django.contrib.auth.models import User  # Import the User model
+
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 @authentication_classes([TokenAuthentication])
@@ -70,9 +72,9 @@ def listCartItems(request):
         if not cart_items:
             return Response({'msg': 'Cart is empty'}, status=status.HTTP_200_OK)
 
-        total_items_price = sum(cart_item.get_total_item_price() for cart_item in cart_items)
-        total_items_count = sum(cart_item.quantity for cart_item in cart_items)
-
+        total_items_price = sum(cart_item.get_total_item_price() for cart_item in cart_items) + 10
+        total_items_count = sum(cart_item.quantity for cart_item in cart_items) 
+       
         response_data = {
             'cart_items': serializer.data,
             'total_items_price': total_items_price,

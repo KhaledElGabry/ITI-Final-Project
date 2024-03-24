@@ -1,3 +1,4 @@
+from calendar import month
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.core.validators import MinLengthValidator, MaxLengthValidator, RegexValidator
@@ -9,9 +10,7 @@ class CustomToken(Token):
     expires = models.DateTimeField(null=False, blank=False)
 
     def save(self, *args, **kwargs):
-        # Set expiration time to 1 minute from now
-        self.expires = timezone.now() + timedelta(minutes=3)
-        self.expires = timezone.now() + timedelta(hours=1)
+        self.expires = timezone.now() + timedelta(weeks=12)
         super().save(*args, **kwargs)
 
     def is_expired(self):
