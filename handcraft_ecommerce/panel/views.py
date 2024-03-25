@@ -48,6 +48,8 @@ def specific_user(request, id):
             'email': user.email,
             'phone': user.phone,
             'usertype': user.usertype,
+            'ssn': user.ssn,    
+            'shopname': user.shopname,
             'Photo_URL': user.imageUrl,
             # 'Image': user.image,
         }
@@ -67,6 +69,8 @@ def userDetails(request):
             'email': user.email,
             'phone': user.phone,
             'usertype': user.usertype,
+            'ssn': user.ssn,
+            'shopname': user.shopname,
             'Photo': user.imageUrl,
         })
     return JsonResponse({'users': users_list})
@@ -166,6 +170,10 @@ def useradd(request):
             if not ssn:  # If SSN is not provided, return an error
                 addUser.delete()  # Remove the user created without SSN
                 return JsonResponse({'error': 'SSN is required for vendors'})
+            shopname = request.POST.get('shopname', '')
+            if not shopname:
+                addUser.delete()  # Remove the user created without shopname (optional)
+                return JsonResponse({'error': 'Shop name is required'})
 
             # Set the SSN for the user and save
             addUser.ssn = ssn
@@ -176,7 +184,7 @@ def useradd(request):
         return JsonResponse({'error': 'Only POST requests are allowed'})
 
 #---------------------------------------delete------------------------------------------------------------------ 
-
+@csrf_exempt
 def delete(request,id):
     delUser=User.objects.get(id=id)
     delUser.delete()
@@ -380,24 +388,22 @@ def delproduct(request,id):
     delProduct.delete()
     return JsonResponse({'message': 'Product deleted successfully'})
 #---------------------------------------update------------------------------------------------------------------ 
+
+
+
 @csrf_exempt
 def updateproduct(request, id):
     if request.method == 'POST':
-        prodUser = Product.objects.filter(id=id)
-        if prodUser.exists():
-
+        product = Product.objects.filter(id=id)
+        
+        if product.exists():
             if 'image' in request.FILES:
-            # Delete old image if it exists
-                if prodUser.image:
-                    media_file = os.path.join(os.getcwd(), prodUser.image.path)
-                    if os.path.isfile(media_file):
-                        os.remove(media_file)
-                        print(f"Deleted: {media_file}")
+                if product.image and os.path.exists(product.image.path):
+                    os.remove(product.image.path)
+                product.image = request.FILES['image']
 
-                # Update user with new data including image
-                prodUser.image = request.FILES['image']
 
-            prodUser.update(
+            product.update(
                 prodVendor=request.POST.get('prodVendor'),
                 prodName=request.POST.get('prodName'),
                 prodPrice=request.POST.get('prodPrice'),
@@ -406,13 +412,13 @@ def updateproduct(request, id):
                 prodStock=request.POST.get('prodStock'),
                 prodOnSale=request.POST.get('prodOnSale'),
                 prodDiscountPercentage=request.POST.get('prodDiscountPercentage'),
-
                 prodImageThumbnail=request.FILES.get('prodImageThumbnail'),
                 prodImageOne=request.FILES.get('prodImageOne'),
                 prodImageTwo=request.FILES.get('prodImageTwo'),
                 prodImageThree=request.FILES.get('prodImageThree'),
                 prodImageFour=request.FILES.get('prodImageFour'),
                 prodImageUrl=request.FILES.get('prodImageUrl'),
+                
             )
             return JsonResponse({'message': 'product updated successfully'})
         else:
@@ -423,7 +429,6 @@ def updateproduct(request, id):
 
 #------------------------------------------------------------------------------------------------
     
-
 
 
 
