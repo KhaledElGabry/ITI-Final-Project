@@ -12,6 +12,9 @@ import os
 from django.shortcuts import get_object_or_404
 from django.core.exceptions import ObjectDoesNotExist
 
+
+
+
 #===================================== log in / log out =================================================
 @csrf_exempt
 def admin_login(request):
@@ -417,9 +420,8 @@ def updateproduct(request, id):
                 prodImageTwo=request.FILES.get('prodImageTwo'),
                 prodImageThree=request.FILES.get('prodImageThree'),
                 prodImageFour=request.FILES.get('prodImageFour'),
-                prodImageUrl=request.FILES.get('prodImageUrl'),
-                
-            )
+                # prodImageUrl=request.FILES.get('prodImageUrl'),
+            )            
             return JsonResponse({'message': 'product updated successfully'})
         else:
             return JsonResponse({'message': 'product not found'}, status=404)
@@ -698,3 +700,27 @@ def updatesub_CateName(request, id):
         return JsonResponse({'message': 'Subcategory updated successfully'})
     else:
         return JsonResponse({'message': 'Invalid request method'}, status=405)
+    
+    
+    
+    
+    
+# count all products and users for Chart
+
+@csrf_exempt
+def countAllProductsAndUsers(request):
+    if request.method != 'GET':
+        return JsonResponse({'message': 'Invalid request method. Use GET'}, status=405)
+
+    products = Product.objects.all().count()
+    vendor_count = User.objects.filter(usertype='vendor').count()
+    customer_count = User.objects.filter(usertype='customer').count()
+
+    data = {
+        'total_products': products,
+        'total_users': {
+            'vendors': vendor_count,
+            'customers': customer_count,
+        },
+    }
+    return JsonResponse(data)

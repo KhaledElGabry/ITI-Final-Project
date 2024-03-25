@@ -31,9 +31,6 @@ from django.core.paginator import Paginator
 import json
 from chatterbot import ChatBot
 from chatterbot.trainers import ListTrainer , ChatterBotCorpusTrainer
-
-# from chatterbot import ChatBot
-# from chatterbot.trainers import ListTrainer , ChatterBotCorpusTrainer
 # import time
 from django.views.decorators.csrf import csrf_exempt
 from django.core.exceptions import ObjectDoesNotExist
