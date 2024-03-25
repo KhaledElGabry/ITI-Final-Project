@@ -561,7 +561,7 @@ def subcategoryDetails(request):
             'ID': categ.id,
             'subCateName': categ.subCateName,
             'subCateDescription': categ.subCateDescription,
-            'subCateParent': categ.subCateParent,
+            # 'subCateParent': categ.subCateParent,
             'subCateImage': categ.subCateImage.url if categ.subCateImage else None,  # Accessing the URL property
         })
     return JsonResponse({'sub_categories': sub_category_list})  
