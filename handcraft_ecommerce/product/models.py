@@ -16,12 +16,14 @@ class Product(models.Model):
     prodStock = models.IntegerField(default=0, verbose_name=('On Stock'))
     prodOnSale = models.BooleanField(default=False)
     prodDiscountPercentage = models.IntegerField(default=0, validators=[MinValueValidator(0), MaxValueValidator(100)])
+    
     prodImageThumbnail = models.ImageField(upload_to='product/', default='thumbnails/no-product.png', validators=[FileExtensionValidator(['png','jpg','jpeg'])], verbose_name=('Image Thumbnail'), null=True, blank=True)
     prodImageOne = models.ImageField(upload_to='product/', default='thumbnails/no-product.png', validators=[FileExtensionValidator(['png','jpg','jpeg'])], verbose_name=('Product Image One'), null=True, blank=True)
     prodImageTwo = models.ImageField(upload_to='product/', default='thumbnails/no-product.png', validators=[FileExtensionValidator(['png','jpg','jpeg'])], verbose_name=('Product Image Two'), null=True, blank=True)
     prodImageThree = models.ImageField(upload_to='product/', default='thumbnails/no-product.png', validators=[FileExtensionValidator(['png','jpg','jpeg'])], verbose_name=('Product Image Three'), null=True, blank=True)
     prodImageFour = models.ImageField(upload_to='product/', default='thumbnails/no-product.png', validators=[FileExtensionValidator(['png','jpg','jpeg'])], verbose_name=('Product Image Four'), null=True, blank=True)
     prodImageUrl = models.URLField(null=True)
+   
     created_at = models.DateTimeField(default=timezone.now, verbose_name=('Created At'))
     
  

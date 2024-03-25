@@ -14,7 +14,7 @@ class CartItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CartItem
-        fields = ['id', 'item_image', 'item_name', 'item_price', 'item_description','quantity', 'subtotal_price']
+        fields = ['id', 'item_image', 'item_name', 'item_price', 'item_description','quantity', 'subtotal_price','item_id']
 
 class CartSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), required=True)
