@@ -194,7 +194,9 @@ def get_customer_orders(request):
                 'product_name': item.product.prodName,
                 'quantity': item.quantity,
                 'product_image_thumbnail': item.product.prodImageThumbnail.url if item.product.prodImageThumbnail else None,
-                'item_id':item.product.id
+                'item_id':item.product.id,
+                'product_price': item.product.prodPrice
+
             })
         order_data.append({
             'order_id': order.id,
@@ -206,7 +208,8 @@ def get_customer_orders(request):
             'user': order.user.id if order.user else None,
             'status': order.status,
             'order_items': items_data,  # Include the list of order items
-            'total_price': order.total_price
+            'total_price': order.total_price,
+            'created_at': order.created_at
         })
 
     return Response({'orders': order_data})

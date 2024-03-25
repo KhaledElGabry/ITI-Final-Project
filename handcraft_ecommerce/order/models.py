@@ -3,6 +3,7 @@ from product.models import Product
 from cart.models import Cart
 from django.conf import settings
 from account.models import User
+from django.utils import timezone
 class PaymentStatus(models.TextChoices):
     PAID = 'Paid'
     UNPAID = 'Unpaid'
@@ -26,7 +27,7 @@ class Order(models.Model):
       (DELIVERED_STATE, "delivered"),
       (CANCEL_STATE,'canceled')
     ]
-  
+    created_at = models.DateField(default=timezone.now, verbose_name=('Created At'))
     address = models.CharField(max_length=100, default="", blank=False)
     phone_number = models.CharField(max_length=100, default="", blank=False)
     payment_status = models.CharField(max_length=30, choices=PaymentStatus.choices, default=PaymentStatus.UNPAID)
