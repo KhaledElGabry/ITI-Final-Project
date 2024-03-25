@@ -71,71 +71,6 @@ def userDetails(request):
         })
     return JsonResponse({'users': users_list})
 #---------------------------------------add------------------------------------------------------------------ 
- 
-# @csrf_exempt  
-# def useradd(request):
-#     if request.method == 'POST':
-#             email = request.POST.get('email', '')
-#             ssn = request.POST.get('ssn', '')
-
-#             # Check if user with the same email already exists
-#             if User.objects.filter(email=email).exists():
-#                 return JsonResponse({'error': 'email already exists'})
-#             elif User.objects.filter(ssn=ssn).exists():
-#                 return JsonResponse({'error': 'SSN already exists'})
-#             # If user does not exist, create a new user
-#             addUser = User.objects.create(
-#                 first_name=request.POST.get('first_name', ''),
-#                 last_name=request.POST.get('last_name', ''),
-#                 email=email,
-#                 phone=request.POST.get('phone', ''),
-#                 usertype=request.POST.get('usertype', ''),
-#                 password=request.POST.get('password', ''),
-#                 address=request.POST.get('address', ''),
-#                 shopname=request.POST.get('shopname', ''),
-#                 ssn=request.POST.get('ssn', ''),
-#                 image=request.FILES.get('image', ''),
-                
-#             )
-            
-#             addUser.save()
-#             return JsonResponse({'message': 'User added successfully'})
-#     else:
-#         return JsonResponse({'error': 'Only POST requests are allowed'})   
-
-# @csrf_exempt
-# def useradd(request):
-#     if request.method == 'POST':
-#         email = request.POST.get('email', '')
-#         usertype = request.POST.get('usertype', '')
-
-#         # Check if user with the same email already exists
-#         if User.objects.filter(email=email).exists():
-#             return JsonResponse({'error': 'email already exists'})
-
-#         # If user does not exist, create a new user
-#         addUser_data = {
-#             'first_name': request.POST.get('first_name', ''),
-#             'last_name': request.POST.get('last_name', ''),
-#             'email': email,
-#             'phone': request.POST.get('phone', ''),
-#             'usertype': usertype,
-#             'password': request.POST.get('password', ''),
-#             'address': request.POST.get('address', ''),
-#             'shopname': request.POST.get('shopname', ''),
-#             'image': request.FILES.get('image', ''),
-#         }
-
-#         # Only include SSN if the user type is not 'customer'
-#         if usertype != 'customer':
-#             addUser_data['ssn'] = request.POST.get('ssn', '')
-
-#         addUser = User.objects.create(**addUser_data)
-#         addUser.save()
-
-#         return JsonResponse({'message': 'User added successfully'})
-#     else:
-#         return JsonResponse({'error': 'Only POST requests are allowed'})
 
 @csrf_exempt
 def useradd(request):
@@ -296,45 +231,6 @@ def productDetails(request):
     return JsonResponse({'Products': product_list})
 
 #---------------------------------------add------------------------------------------------------------------
-
-# @csrf_exempt
-# def productadd(request):
-#     if request.method == 'POST':
-#         try:
-#             # Fetch the user instance based on the provided username or ID
-#             prod_vendor_email = request.POST.get('prodVendor') 
-#             prod_vendor = User.objects.filter(email=prod_vendor_email)[0] 
-            
-#             prod_categ_name = request.POST.get('prodSubCategory')
-#             prod_categ = SubCategory.objects.filter(subCateName=prod_categ_name)[0]
-            
-#             addprod = Product.objects.create(
-#                 prodVendor=prod_vendor,  # Assign the user instance
-#                 prodName=request.POST.get('prodName'),
-#                 prodPrice=request.POST.get('prodPrice'),
-#                 prodDescription=request.POST.get('prodDescription'),
-#                 prodSubCategory=prod_categ,
-#                 prodStock=request.POST.get('prodStock'),
-#                 prodOnSale=request.POST.get('prodOnSale'),
-#                 prodDiscountPercentage=request.POST.get('prodDiscountPercentage'),
-#                 prodImageThumbnail=request.FILES.get('prodImageThumbnail'),
-#                 prodImageOne=request.FILES.get('prodImageOne'),
-#                 prodImageTwo=request.FILES.get('prodImageTwo'),
-#                 prodImageThree=request.FILES.get('prodImageThree'),
-#                 prodImageFour=request.FILES.get('prodImageFour'),
-#                 prodImageUrl=request.FILES.get('prodImageUrl'),
-                
-#                 created_at=timezone.now()  # or parse the provided date string
-#             )
-#             addprod.save()
-#             return JsonResponse({'message': 'product added successfully'})
-#         except ValidationError as e:
-#             return JsonResponse({'error': f'Validation Error: {e}'})
-#         except Exception as e:
-#             return JsonResponse({'error': f'An error occurred: {e}'})
-#     else:
-#         return JsonResponse({'error': 'Only POST requests are allowed'})
-
 
 @csrf_exempt
 def productadd(request):
@@ -556,7 +452,7 @@ def subcategoryDetails(request):
             'ID': categ.id,
             'subCateName': categ.subCateName,
             'subCateDescription': categ.subCateDescription,
-            'subCateParent': categ.subCateParent,
+            # 'subCateParent': categ.subCateParent,
             'subCateImage': categ.subCateImage.url if categ.subCateImage else None,  # Accessing the URL property
         })
     return JsonResponse({'sub_categories': sub_category_list})  
@@ -590,73 +486,12 @@ def addsub_category(request):
         return JsonResponse({'error': 'Only POST requests are allowed'})
 
 
-
-
-
-
-
-# @csrf_exempt
-# def addsub_category(request):
-#     if request.method == 'POST':
-#         try:
-#             # Get the Category instance corresponding to the provided subCateParent
-#             category_name = request.POST.get('subCateParent')
-#             category_instance = Category.objects.get(cateName=category_name)
-
-#             # Create the SubCategory instance
-#             sub_category = SubCategory.objects.create(
-#                 subCateName=request.POST.get('subCateName'),
-#                 subCateParent=category_instance,  # Assign the Category instance
-#                 subCateDescription=request.POST.get('subCateDescription'),
-#                 subCateImage=request.FILES.get('subCateImage'),
-#             )
-#             sub_category.save()
-#             return JsonResponse({'message': 'sub_category added successfully'})
-#         except ValidationError as e:
-#             return JsonResponse({'error': f'Validation Error: {e}'})
-#         except Exception as e:
-#             return JsonResponse({'error': f'An error occurred: {e}'})
-#     else:
-#         return JsonResponse({'error': 'Only POST requests are allowed'})
 #---------------------------------------delete------------------------------------------------------------------ 
 def delsub_category(request,id):
     sub_category=SubCategory.objects.get(id=id)
     sub_category.delete()
     return JsonResponse({'message': 'category deleted successfully'})
 #---------------------------------------update------------------------------------------------------------------ 
-
-# @csrf_exempt
-# def updatesub_CateName(request, id):
-#     if request.method == 'POST':
-#         try:
-#             sub_category = SubCategory.objects.get(id=id)
-#         except SubCategory.DoesNotExist:
-#             return JsonResponse({'message': 'Subcategory not found'}, status=404)
-
-#         sub_category_name = request.POST.get('subCateName')
-#         sub_category_description = request.POST.get('subCateDescription')
-#         subCateParent = request.POST.get('subCateParent')
-
-#         if 'subCateImage' in request.FILES:
-#             # Delete old image if it exists
-#             if sub_category.subCateImage:
-#                 media_file = os.path.join(os.getcwd(), sub_category.subCateImage.path)
-#                 if os.path.isfile(media_file):
-#                     os.remove(media_file)
-#                     print(f"Deleted: {media_file}")
-
-#             # Update user with new image
-#             sub_category.subCateImage = request.FILES['subCateImage']
-
-#         # Update other fields
-#         sub_category.subCateName = sub_category_name
-#         sub_category.subCateDescription = sub_category_description
-#         sub_category.subCateParent = subCateParent
-#         sub_category.save()
-
-#         return JsonResponse({'message': 'Subcategory updated successfully'})
-#     else:
-#         return JsonResponse({'message': 'Invalid request method'}, status=405)
 
 @csrf_exempt
 def updatesub_CateName(request, id):
