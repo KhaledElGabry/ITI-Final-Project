@@ -12,7 +12,6 @@ import os
 from django.shortcuts import get_object_or_404
 from django.core.exceptions import ObjectDoesNotExist
 
-#===================================== log in / log out =================================================
 @csrf_exempt
 def admin_login(request):
     if request.method == 'POST':
@@ -35,8 +34,6 @@ def admin_logout(request):
     return JsonResponse({'success': True})  # Returns a JSON response indicating success
 
 
-#======================================= User ===================================================================
-#-------------------------------------- Show specific user ------------------------------------------------------
 @csrf_exempt
 def specific_user(request, id):
     try:
@@ -48,6 +45,8 @@ def specific_user(request, id):
             'email': user.email,
             'phone': user.phone,
             'usertype': user.usertype,
+            'ssn': user.ssn,    
+            'shopname': user.shopname,
             'Photo_URL': user.imageUrl,
             # 'Image': user.image,
         }
@@ -55,7 +54,6 @@ def specific_user(request, id):
     except User.DoesNotExist:
         return JsonResponse({'error': 'User not found'}, status=404)
 
-#---------------------------------------details------------------------------------------------------------------
 def userDetails(request):
     users = User.objects.all()
     users_list = []
@@ -67,10 +65,11 @@ def userDetails(request):
             'email': user.email,
             'phone': user.phone,
             'usertype': user.usertype,
+            'ssn': user.ssn,
+            'shopname': user.shopname,
             'Photo': user.imageUrl,
         })
     return JsonResponse({'users': users_list})
-#---------------------------------------add------------------------------------------------------------------ 
 
 @csrf_exempt
 def useradd(request):
@@ -101,6 +100,10 @@ def useradd(request):
             if not ssn:  # If SSN is not provided, return an error
                 addUser.delete()  # Remove the user created without SSN
                 return JsonResponse({'error': 'SSN is required for vendors'})
+            shopname = request.POST.get('shopname', '')
+            if not shopname:
+                addUser.delete()  # Remove the user created without shopname (optional)
+                return JsonResponse({'error': 'Shop name is required'})
 
             # Set the SSN for the user and save
             addUser.ssn = ssn
@@ -110,13 +113,11 @@ def useradd(request):
     else:
         return JsonResponse({'error': 'Only POST requests are allowed'})
 
-#---------------------------------------delete------------------------------------------------------------------ 
-
+@csrf_exempt
 def delete(request,id):
     delUser=User.objects.get(id=id)
     delUser.delete()
     return JsonResponse({'message': 'User deleted successfully'})
-#---------------------------------------update------------------------------------------------------------------ 
 @csrf_exempt
 def update(request, id):
     if request.method == 'POST':
@@ -151,18 +152,8 @@ def update(request, id):
         return JsonResponse({'message': 'User updated successfully'})
     else:
         return JsonResponse({'message': 'Invalid request method'}, status=405)
-#------------------------------------------------------------------------------------------------
     
 
-
-
-
-
-
-
-
-#================================================= Product =============================================================  
-#---------------------------------------specific product------------------------------------------------------------------
 @csrf_exempt
 def specific_product(request, id):
     try:
@@ -195,9 +186,6 @@ def specific_product(request, id):
         return JsonResponse({'error': 'Product not found'}, status=404)
 
 
-
-
-#---------------------------------------details------------------------------------------------------------------
 def productDetails(request):
 
     products = Product.objects.all()
@@ -230,7 +218,6 @@ def productDetails(request):
 
     return JsonResponse({'Products': product_list})
 
-#---------------------------------------add------------------------------------------------------------------
 
 @csrf_exempt
 def productadd(request):
@@ -270,30 +257,24 @@ def productadd(request):
     else:
         return JsonResponse({'error': 'Only POST requests are allowed'})
 
-#---------------------------------------delete------------------------------------------------------------------ 
 def delproduct(request,id):
     delProduct=Product.objects.get(id=id)
     delProduct.delete()
     return JsonResponse({'message': 'Product deleted successfully'})
-#---------------------------------------update------------------------------------------------------------------ 
+
 @csrf_exempt
 def updateproduct(request, id):
     if request.method == 'POST':
-        prodUser = Product.objects.filter(id=id)
-        if prodUser.exists():
-
+        product = Product.objects.filter(id=id)
+        
+        if product.exists():
             if 'image' in request.FILES:
-            # Delete old image if it exists
-                if prodUser.image:
-                    media_file = os.path.join(os.getcwd(), prodUser.image.path)
-                    if os.path.isfile(media_file):
-                        os.remove(media_file)
-                        print(f"Deleted: {media_file}")
+                if product.image and os.path.exists(product.image.path):
+                    os.remove(product.image.path)
+                product.image = request.FILES['image']
 
-                # Update user with new data including image
-                prodUser.image = request.FILES['image']
 
-            prodUser.update(
+            product.update(
                 prodVendor=request.POST.get('prodVendor'),
                 prodName=request.POST.get('prodName'),
                 prodPrice=request.POST.get('prodPrice'),
@@ -302,13 +283,13 @@ def updateproduct(request, id):
                 prodStock=request.POST.get('prodStock'),
                 prodOnSale=request.POST.get('prodOnSale'),
                 prodDiscountPercentage=request.POST.get('prodDiscountPercentage'),
-
                 prodImageThumbnail=request.FILES.get('prodImageThumbnail'),
                 prodImageOne=request.FILES.get('prodImageOne'),
                 prodImageTwo=request.FILES.get('prodImageTwo'),
                 prodImageThree=request.FILES.get('prodImageThree'),
                 prodImageFour=request.FILES.get('prodImageFour'),
                 prodImageUrl=request.FILES.get('prodImageUrl'),
+                
             )
             return JsonResponse({'message': 'product updated successfully'})
         else:
@@ -317,22 +298,6 @@ def updateproduct(request, id):
         return JsonResponse({'message': 'Invalid request method'}, status=405)
 
 
-#------------------------------------------------------------------------------------------------
-    
-
-
-
-
-
-
-
-
-
-
-
-
-#=============================================Category======================================================
-#---------------------------------------specific category------------------------------------------------------------------
 @csrf_exempt
 def specific_category(request, id):
     category = Category.objects.filter(id=id).first()  # Retrieve a single category by ID
@@ -347,7 +312,6 @@ def specific_category(request, id):
     else:
         return JsonResponse({'error': 'Category not found'}, status=404) 
 
-#---------------------------------------details------------------------------------------------------------------
 def categoryDetails(request):
     category = Category.objects.all()
     category_list = []
@@ -359,7 +323,8 @@ def categoryDetails(request):
             'cateImage': categ.cateImage.url if categ.cateImage else None,  # Accessing the URL property
         })
     return JsonResponse({'Categories': category_list})    
-#---------------------------------------add------------------------------------------------------------------
+
+
 @csrf_exempt
 def categoryadd(request):
     if request.method == 'POST':
@@ -377,12 +342,12 @@ def categoryadd(request):
             return JsonResponse({'error': f'An error occurred: {e}'})
     else:
         return JsonResponse({'error': 'Only POST requests are allowed'})
-#---------------------------------------delete------------------------------------------------------------------ 
+
 def delcategory(request,id):
     delCategory=Category.objects.get(id=id)
     delCategory.delete()
     return JsonResponse({'message': 'category deleted successfully'})    
-#---------------------------------------update------------------------------------------------------------------ 
+
 
 @csrf_exempt
 def updatecategory(request, id):
@@ -409,25 +374,8 @@ def updatecategory(request, id):
             return JsonResponse({'message': 'Category not found'}, status=404)
     else:
         return JsonResponse({'message': 'Invalid request method'}, status=405)
-#-------------------------------------------------------------------------------------------------------------------------
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#=============================================sub Category======================================================
-#---------------------------------------specific subcategory------------------------------------------------------------------
 @csrf_exempt
 def spcific_subcategory(request, id):
     try:
@@ -443,7 +391,7 @@ def spcific_subcategory(request, id):
     except SubCategory.DoesNotExist:
         return JsonResponse({'error': 'SubCategory does not exist'}, status=404)    
 
-#---------------------------------------details------------------------------------------------------------------
+
 def subcategoryDetails(request):
     sub_category = SubCategory.objects.all()
     sub_category_list = []
@@ -460,7 +408,6 @@ def subcategoryDetails(request):
 
     
        
-#---------------------------------------add------------------------------------------------------------------
 @csrf_exempt
 def addsub_category(request):
     if request.method == 'POST':
@@ -486,12 +433,11 @@ def addsub_category(request):
         return JsonResponse({'error': 'Only POST requests are allowed'})
 
 
-#---------------------------------------delete------------------------------------------------------------------ 
 def delsub_category(request,id):
     sub_category=SubCategory.objects.get(id=id)
     sub_category.delete()
     return JsonResponse({'message': 'category deleted successfully'})
-#---------------------------------------update------------------------------------------------------------------ 
+
 
 @csrf_exempt
 def updatesub_CateName(request, id):

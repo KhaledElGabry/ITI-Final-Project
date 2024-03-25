@@ -194,7 +194,9 @@ def get_customer_orders(request):
                 'product_name': item.product.prodName,
                 'quantity': item.quantity,
                 'product_image_thumbnail': item.product.prodImageThumbnail.url if item.product.prodImageThumbnail else None,
-                'item_id':item.product.id
+                'item_id':item.product.id,
+                'product_price': item.product.prodPrice
+
             })
         order_data.append({
             'order_id': order.id,
@@ -206,7 +208,8 @@ def get_customer_orders(request):
             'user': order.user.id if order.user else None,
             'status': order.status,
             'order_items': items_data,  # Include the list of order items
-            'total_price': order.total_price
+            'total_price': order.total_price,
+            'created_at': order.created_at
         })
 
     return Response({'orders': order_data})
@@ -281,13 +284,18 @@ def delivered_order(request, pk):
     order = get_object_or_404(Order, id=pk)
     order.status=Order.DELIVERED_STATE
     order.save()
-    return Response({'details': "order is deleted"})
+    return Response({'details': "order is delivered"})
 
 
-@api_view(['DELETE'])
+@api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 @authentication_classes([TokenAuthentication])
 def delete_order(request, pk):
     order = get_object_or_404(Order, id=pk)
-    order.delete()
-    return Response({'details': "order is deleted"})
+    
+    if order.status != Order.DELIVERED_STATE:
+        order.status = Order.CANCEL_STATE
+        order.save()
+        return Response({'details': "Order is canceled"})
+    else:
+        return Response({'error': "Cannot cancel order with 'Delivered' status."}, status=status.HTTP_403_FORBIDDEN)
