@@ -36,13 +36,6 @@ def process_order(request, pk):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['DELETE'])
-@permission_classes([IsAuthenticated])
-@authentication_classes([TokenAuthentication])
-def delete_order(request, pk):
-    order = get_object_or_404(Order, id=pk)
-    order.delete()
-    return Response({'details': "order is deleted"})
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -279,3 +272,22 @@ def get_vendor_orders(request):
         })
 
     return Response({'orders': order_data})
+
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+@authentication_classes([TokenAuthentication])
+def delivered_order(request, pk):
+    order = get_object_or_404(Order, id=pk)
+    order.status=Order.DELIVERED_STATE
+    order.save()
+    return Response({'details': "order is deleted"})
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+@authentication_classes([TokenAuthentication])
+def delete_order(request, pk):
+    order = get_object_or_404(Order, id=pk)
+    order.delete()
+    return Response({'details': "order is deleted"})
