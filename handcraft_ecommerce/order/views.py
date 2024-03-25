@@ -281,13 +281,18 @@ def delivered_order(request, pk):
     order = get_object_or_404(Order, id=pk)
     order.status=Order.DELIVERED_STATE
     order.save()
-    return Response({'details': "order is deleted"})
+    return Response({'details': "order is delivered"})
 
 
-@api_view(['DELETE'])
+@api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 @authentication_classes([TokenAuthentication])
 def delete_order(request, pk):
     order = get_object_or_404(Order, id=pk)
-    order.delete()
-    return Response({'details': "order is deleted"})
+    
+    if order.status != Order.DELIVERED_STATE:
+        order.status = Order.CANCEL_STATE
+        order.save()
+        return Response({'details': "Order is canceled"})
+    else:
+        return Response({'error': "Cannot cancel order with 'Delivered' status."}, status=status.HTTP_403_FORBIDDEN)

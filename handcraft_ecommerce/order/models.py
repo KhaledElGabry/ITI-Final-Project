@@ -18,11 +18,13 @@ class Order(models.Model):
     PENDING_STATE = 'P'
     SHIPPED_STATE = 'S'
     DELIVERED_STATE = 'D'
+    CANCEL_STATE = 'C'
 
     ORDER_STATUS_CHOICES = [
       (PENDING_STATE, "pending"),
       (SHIPPED_STATE, "shipped"),
-      (DELIVERED_STATE, "delivered")
+      (DELIVERED_STATE, "delivered"),
+      (CANCEL_STATE,'canceled')
     ]
   
     address = models.CharField(max_length=100, default="", blank=False)
