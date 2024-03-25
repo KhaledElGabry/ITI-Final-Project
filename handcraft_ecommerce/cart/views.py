@@ -67,8 +67,7 @@ def listCartItems(request):
 
         cart, created = Cart.objects.get_or_create(user=request.user)
         cart_items = cart.cartitems.all()
-        serializer = CartItemSerializer(cart_items, many=True)  # Use CartItemSerializer instead of CartSerializer
-
+        serializer = CartItemSerializer(cart_items, many=True)  # Use CartItemSerializer instead of CartSerialize
         if not cart_items:
             return Response({'msg': 'Cart is empty'}, status=status.HTTP_200_OK)
 
@@ -79,6 +78,7 @@ def listCartItems(request):
             'cart_items': serializer.data,
             'total_items_price': total_items_price,
             'total_items_count': total_items_count,
+            
         }
 
         return Response(response_data)

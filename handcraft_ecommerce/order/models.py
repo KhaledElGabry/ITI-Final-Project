@@ -10,15 +10,30 @@ class PaymentStatus(models.TextChoices):
 class PaymentMode(models.TextChoices):
     COD = 'COD'
     CARD = 'CARD'
+    
+
 
 class Order(models.Model):
+    
+    PENDING_STATE = 'P'
+    SHIPPED_STATE = 'S'
+    DELIVERED_STATE = 'D'
+
+    ORDER_STATUS_CHOICES = [
+      (PENDING_STATE, "pending"),
+      (SHIPPED_STATE, "shipped"),
+      (DELIVERED_STATE, "delivered")
+    ]
+  
     address = models.CharField(max_length=100, default="", blank=False)
     phone_number = models.CharField(max_length=100, default="", blank=False)
     payment_status = models.CharField(max_length=30, choices=PaymentStatus.choices, default=PaymentStatus.UNPAID)
     payment_mode = models.CharField(max_length=30, choices=PaymentMode.choices, default=PaymentMode.COD)
     is_paid = models.BooleanField(default=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
-    
+    status = models.CharField(
+        max_length=50, choices=ORDER_STATUS_CHOICES, default=PENDING_STATE
+    )
     def __str__(self):
         return str(self.id)
 
