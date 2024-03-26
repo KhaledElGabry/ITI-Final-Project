@@ -36,4 +36,6 @@ urlpatterns = [
     path('updatesub_CateName/<int:id>/',views.updatesub_CateName,name='updatesub_CateName'),
     
     path('count-prod-user/', views.countAllProductsAndUsers, name='products_and_users'),
+    path('most-selling-products/', views.mostSellingProducts, name='most-selling-products'),
+    path('most-frequent-customers/', views.mostFrequentCustomers, name='most-frequent-customers'),
 ]
