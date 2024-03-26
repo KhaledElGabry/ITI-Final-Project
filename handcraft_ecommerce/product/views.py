@@ -36,6 +36,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.exceptions import NotFound
 from django.db.models import Avg
+from order.models import OrderItem
 
 
 
@@ -102,7 +103,7 @@ def productListApi(request):
         # if token.expires and token.is_expired():
         #     raise AuthenticationFailed({"data": "expired_token.", "message": 'Please login again.'})
         
-        products = Product.objects.all()
+        products = Product.objects.filter(is_deleted=False)
         
        
         # Pagination
@@ -189,7 +190,7 @@ def lastProducts(request):
     # if token.expires and token.is_expired():
     #     raise AuthenticationFailed({"data":"expired_token.", "message":'Please login again.'})
 
-    products = Product.objects.order_by('-created_at')[:10]
+    products = Product.objects.filter(is_deleted=False).order_by('-created_at')[:10]
     data = ProductSerializer(products, many=True).data
     for product in data:
         try:
@@ -242,7 +243,7 @@ def productVendorApi(request):
     if token.expires and token.is_expired():
             raise AuthenticationFailed({"data":"expired_token.", "message":'Please login again.'})
     vendor = get_object_or_404(User, id=request.user.id, usertype='vendor')
-    vendorProducts = Product.objects.filter(prodVendor=vendor)
+    vendorProducts = Product.objects.filter(prodVendor=vendor,is_deleted=False)
     serializer = ProductSerializer(vendorProducts, many=True)
     return Response(serializer.data)
 
@@ -320,8 +321,13 @@ def productUpdateDeleteApi(request, id):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     elif request.method == 'DELETE':
-        product.delete()
-        return Response({'message': 'Product deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+        if OrderItem.objects.filter(product=product).exists():
+            product.is_deleted=True
+            product.save()
+            return Response({'message': 'Product can\'t deleted because in order'}, status=status.HTTP_204_NO_CONTENT)
+        else:
+            product.delete()
+            return Response({'message': 'Product deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
 
 
 

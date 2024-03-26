@@ -25,7 +25,7 @@ class Product(models.Model):
     prodImageUrl = models.URLField(null=True)
    
     created_at = models.DateTimeField(default=timezone.now, verbose_name=('Created At'))
-    
+    is_deleted = models.BooleanField(default=False, verbose_name='Is Deleted')
  
     class Meta:
         verbose_name = ('Product')
