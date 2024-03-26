@@ -1,9 +1,10 @@
 from django.db import models
 from product.models import Product
-from cart.models import Cart
 from django.conf import settings
 from account.models import User
 from django.utils import timezone
+from product.serializers import ProductSerializer
+
 class PaymentStatus(models.TextChoices):
     PAID = 'Paid'
     UNPAID = 'Unpaid'
@@ -12,8 +13,6 @@ class PaymentMode(models.TextChoices):
     COD = 'COD'
     CARD = 'CARD'
     
-
-
 class Order(models.Model):
     
     PENDING_STATE = 'P'
@@ -56,7 +55,8 @@ class OrderItem(models.Model):
     @property
     def total_item_price(self):
         # Calculate total price of this item in the order
-        return self.quantity * self.product.prodPrice
+        product_serializer = ProductSerializer(self.product)
+        return self.quantity * product_serializer.data['discounted_price']
 
     @classmethod
     def create_from_cart(cls, order, cart_item):
