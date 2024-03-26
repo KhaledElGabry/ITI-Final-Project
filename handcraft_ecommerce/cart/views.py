@@ -54,7 +54,7 @@ def addToCart(request):
     total_item_price = cart_item.get_total_item_price()
     return Response({'msg': 'added', 'total_item_price': total_item_price, 'quantity': cart_item.quantity,'total_items_count':total_items_count}, status=status.HTTP_201_CREATED)
 
-
+from product.serializers import ProductSerializer
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])

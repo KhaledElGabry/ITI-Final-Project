@@ -11,8 +11,8 @@ urlpatterns = [
     path('specific_user/<int:id>/',views.specific_user,name='specific_user'),
     path('userDetails/',views.userDetails,name='userDetails'),
     path('addUser/',views.useradd,name='addUser'),
-    path('delUser/<int:id>/',views.delete,name='delUser'),
-    path('updateUser/<int:id>/',views.update,name='updateUser'),
+    path('delUser/<int:id>/',views.deleteUser,name='delUser'),
+    path('updateUser/<int:id>/', views.updateUser, name='updateUser'),
 
     # Product
     path('specific_product/<int:id>/',views.specific_product,name='specific_product'),
@@ -25,7 +25,7 @@ urlpatterns = [
     path('specific_category/<int:id>/',views.specific_category,name='specific_category'),
     path('categoryDetails/',views.categoryDetails,name='categoryDetails'),
     path('categoryadd/',views.categoryadd,name='categoryadd'),
-    path('delcategory/<int:id>/',views.delcategory,name='delcategory'),
+    path('delcategory/<int:id>/',views.delCategory,name='delcategory'),
     path('updatecategory/<int:id>/',views.updatecategory,name='updatecategory'),
 
     # sub Category
@@ -38,4 +38,8 @@ urlpatterns = [
     # order
     path('get_orders/',views.get_orders,name='get_orders'),
     path('shipped_order/<int:pk>/',views.shipped_order,name='shipped_order'),
+    
+    path('count-prod-user/', views.countAllProductsAndUsers, name='products_and_users'),
+    path('most-selling-products/', views.mostSellingProducts, name='most-selling-products'),
+    path('most-frequent-customers/', views.mostFrequentCustomers, name='most-frequent-customers'),
 ]

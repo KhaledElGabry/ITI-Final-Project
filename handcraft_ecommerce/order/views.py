@@ -15,6 +15,7 @@ from django.shortcuts import render, redirect
 from rest_framework.views import APIView
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.core.mail import send_mail
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -35,7 +36,11 @@ def process_order(request, pk):
         return Response({'order': serializer.data})
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
+def send_orders_email(user):
+    subject = 'New Order Created.'
+    message = f'Dear {user.first_name} {user.last_name}, We are excited to inform you that a new order has been placed on your store. Please log in to your account to view more details and manage the order.\nThank you for using our platform: http://localhost:3000/VendorOrderHistory'
+    
+    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email])
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -80,6 +85,13 @@ def new_order(request):
 
     # Serialize the order
     serializer = OrderSerializer(order)
+    Items = OrderItem.objects.filter(order=order.id)
+    users_set = set()
+    for item in Items:
+        users_set.add(item.product.prodVendor)
+    for user in users_set:
+        send_orders_email(user)
+    users_set.clear()
 
     return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -103,7 +115,7 @@ class CreateCheckOutSession(APIView):
                         # Provide the exact Price ID (for example, pr_1234) of the product you want to sell
                         'price_data': {
                             'currency': 'usd',
-                            'unit_amount': int(order.total_price) * 100,
+                            'unit_amount': int(order.total_price+10) * 100  ,
                             'product_data': {
                                 'name': str(order.pk),
                                 # 'images': [f"{API_URL}/{orderitem_id.product_image}"]
@@ -152,7 +164,6 @@ def handle_payment_success(request):
                     # Update order status to Paid and mark it as paid
                     order.payment_status = PaymentStatus.PAID
                     order.is_paid = True
-                    order.status=Order.SHIPPED_STATE
                     order.save()
 
                     # Clear the items from the user's cart
@@ -173,8 +184,7 @@ def handle_payment_success(request):
     else:
         return Response({"detail": "Method not allowed."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
-
-# customer 
+from product.serializers import ProductSerializer
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -190,13 +200,15 @@ def get_customer_orders(request):
         order_items = order.orderitems.all()
         items_data = []
         for item in order_items:
+            # Get the discounted price of the product
+            discounted_price = ProductSerializer().get_discounted_price(item.product)
+
             items_data.append({
                 'product_name': item.product.prodName,
                 'quantity': item.quantity,
                 'product_image_thumbnail': item.product.prodImageThumbnail.url if item.product.prodImageThumbnail else None,
-                'item_id':item.product.id,
-                'product_price': item.product.prodPrice
-
+                'item_id': item.product.id,
+                'product_price': discounted_price  # Include discounted price in the response
             })
         order_data.append({
             'order_id': order.id,
@@ -208,18 +220,17 @@ def get_customer_orders(request):
             'user': order.user.id if order.user else None,
             'status': order.status,
             'order_items': items_data,  # Include the list of order items
-            'total_price': order.total_price,
+            'total_price': order.total_price +10,
             'created_at': order.created_at
         })
 
     return Response({'orders': order_data})
 
 
-
-
 # vendor 
 from account.models import User
 from account.serializers import *
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 @authentication_classes([TokenAuthentication])
@@ -245,17 +256,20 @@ def get_vendor_orders(request):
 
         # Fetch product details for each order item
         for order_item in order_items:
+            # Get the discounted price of the product
+            discounted_price = ProductSerializer().get_discounted_price(order_item.product)
+
             product_details.append({
                 'product_name': order_item.product.prodName,
-                'product_price': order_item.product.prodPrice,
+                'product_price': discounted_price,  # Include discounted price in the response
                 'product_description': order_item.product.prodDescription,
                 'product_image_thumbnail': order_item.product.prodImageThumbnail.url if order_item.product.prodImageThumbnail else None,
                 'stock': order_item.product.prodStock,
                 'quantity': order_item.quantity,
             })
 
-            # Add the price of each product to the total price
-            total_price += order_item.product.prodPrice
+            # Add the discounted price of each product to the total price
+            total_price += discounted_price
         
         # Serialize user object
         user_data = UserSerializer(order.user).data
@@ -269,21 +283,22 @@ def get_vendor_orders(request):
             'payment_mode': order.payment_mode,
             'is_paid': order.is_paid,
             'user': user_data,
+            'products': product_details,
             'status': order.status,
-            'total_price': total_price,  # Include total price for all products in the order
-            'products': product_details  # Include product details for each order item
+            'total_price': total_price,
+            'created_at': order.created_at
         })
 
     return Response({'orders': order_data})
-
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 @authentication_classes([TokenAuthentication])
 def delivered_order(request, pk):
     order = get_object_or_404(Order, id=pk)
-    order.status=Order.DELIVERED_STATE
-    order.save()
+    if order.status not in [Order.PENDING_STATE, Order.CANCEL_STATE]:
+        order.status=Order.DELIVERED_STATE
+        order.save()
     return Response({'details': "order is delivered"})
 
 
@@ -293,9 +308,11 @@ def delivered_order(request, pk):
 def delete_order(request, pk):
     order = get_object_or_404(Order, id=pk)
     
-    if order.status != Order.DELIVERED_STATE:
+    if order.status == Order.PENDING_STATE:
         order.status = Order.CANCEL_STATE
         order.save()
         return Response({'details': "Order is canceled"})
     else:
-        return Response({'error': "Cannot cancel order with 'Delivered' status."}, status=status.HTTP_403_FORBIDDEN)
+        return Response({'error': "Cannot cancel order with 'Delivered or shipped' status."}, status=status.HTTP_403_FORBIDDEN)
+
+
