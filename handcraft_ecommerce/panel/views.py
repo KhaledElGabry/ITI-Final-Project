@@ -572,8 +572,7 @@ def countAllProductsAndUsers(request):
     return JsonResponse(data)
 
 
-<<<<<<< HEAD
-=======
+
 # count most selling products for Chart
 
 def mostSellingProducts(request):
@@ -632,4 +631,3 @@ def mostFrequentCustomers(request, top_n=10):
         })
 
     return JsonResponse({'most_frequent_customers': customer_data})
->>>>>>> a84afc8877d368cf48c7d09fa0a0ac28f4f3fff9
