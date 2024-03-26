@@ -1,6 +1,5 @@
 from django.shortcuts import render , redirect , reverse
 from django.http import HttpRequest , HttpResponse
-# Create your views here.
 from django.http import JsonResponse
 from account.models import *
 from product.models import *
@@ -11,6 +10,11 @@ from django. contrib import messages
 import os
 from django.shortcuts import get_object_or_404
 from django.core.exceptions import ObjectDoesNotExist
+
+
+
+
+# Login
 
 @csrf_exempt
 def admin_login(request):
@@ -27,6 +31,9 @@ def admin_login(request):
             return JsonResponse({'success': False, 'error': 'Invalid credentials'})  # Returning JSON response for failed login
     return render(request, "adminlogin.html")
 
+
+# Logout
+
 @csrf_exempt
 def admin_logout(request):
     logout(request)
@@ -34,10 +41,29 @@ def admin_logout(request):
     return JsonResponse({'success': True})  # Returns a JSON response indicating success
 
 
-@csrf_exempt
+
+# to read image
+
+def get_user_image(request, id):
+    try:
+        user = User.objects.get(id=id)
+        image_data = user.image.read()
+
+        response = HttpResponse(content_type=user.image.content_type)
+        response.content = image_data
+        return response
+    except User.DoesNotExist:
+        return JsonResponse({'error': 'User not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': f'Error retrieving image: {e}'}, status=500)
+
+
+
+@csrf_exempt 
 def specific_user(request, id):
     try:
         user = User.objects.get(id=id)
+
         user_data = {
             'ID': user.id,
             'first_name': user.first_name,
@@ -45,14 +71,17 @@ def specific_user(request, id):
             'email': user.email,
             'phone': user.phone,
             'usertype': user.usertype,
-            'ssn': user.ssn,    
+            'ssn': user.ssn,
             'shopname': user.shopname,
-            'Photo_URL': user.imageUrl,
-            # 'Image': user.image,
+            'address': user.address,
+            'ImageUrl': user.image.url if user.image else None,
         }
+
         return JsonResponse({'user': user_data})
     except User.DoesNotExist:
         return JsonResponse({'error': 'User not found'}, status=404)
+
+
 
 def userDetails(request):
     users = User.objects.all()
@@ -67,21 +96,40 @@ def userDetails(request):
             'usertype': user.usertype,
             'ssn': user.ssn,
             'shopname': user.shopname,
-            'Photo': user.imageUrl,
+            'address': user.address,
+            'ImageUrl': user.image.url if user.image else None,
         })
     return JsonResponse({'users': users_list})
 
-@csrf_exempt
+
+
+
+# user register 
+
+@csrf_exempt 
 def useradd(request):
     if request.method == 'POST':
         email = request.POST.get('email', '')
-
-        # Check if user with the same email already exists
         if User.objects.filter(email=email).exists():
             return JsonResponse({'error': 'Email already exists'})
 
-        # If user does not exist, create a new user
-        addUser = User.objects.create(
+        ssn = request.POST.get('ssn', '')
+        shopname = request.POST.get('shopname', '')
+
+        # Validate SSN 
+        if request.POST.get('usertype', '') == 'vendor':
+            if not ssn:
+                return JsonResponse({'error': 'SSN is required for vendors'})
+
+            # Check for existing SSN
+            if User.objects.filter(ssn=ssn).exists():
+                return JsonResponse({'error': 'SSN already exists'})
+
+            if not shopname:
+                return JsonResponse({'error': 'Shop name is required'})
+
+        # Create the user object (consider using a serializer for validation)
+        user = User.objects.create(
             first_name=request.POST.get('first_name', ''),
             last_name=request.POST.get('last_name', ''),
             email=email,
@@ -89,37 +137,31 @@ def useradd(request):
             usertype=request.POST.get('usertype', ''),
             password=request.POST.get('password', ''),
             address=request.POST.get('address', ''),
-            shopname=request.POST.get('shopname', ''),
+            shopname=shopname,
             image=request.FILES.get('image', ''),
         )
 
-        # Check if user type is 'vendor'
-        if request.POST.get('usertype', '') == 'vendor':
-            # Check if SSN is provided
-            ssn = request.POST.get('ssn', '')
-            if not ssn:  # If SSN is not provided, return an error
-                addUser.delete()  # Remove the user created without SSN
-                return JsonResponse({'error': 'SSN is required for vendors'})
-            shopname = request.POST.get('shopname', '')
-            if not shopname:
-                addUser.delete()  # Remove the user created without shopname (optional)
-                return JsonResponse({'error': 'Shop name is required'})
-
-            # Set the SSN for the user and save
-            addUser.ssn = ssn
-            addUser.save()
+        # Set SSN for vendor users only (optional for non-vendor users)
+        if ssn:
+            user.ssn = ssn
+            user.save()
 
         return JsonResponse({'message': 'User added successfully'})
     else:
         return JsonResponse({'error': 'Only POST requests are allowed'})
 
+
+
 @csrf_exempt
-def delete(request,id):
+def deleteUser(request,id):
     delUser=User.objects.get(id=id)
     delUser.delete()
     return JsonResponse({'message': 'User deleted successfully'})
+
+
+
 @csrf_exempt
-def update(request, id):
+def updateUser(request, id):
     if request.method == 'POST':
         try:
             updateUser = User.objects.get(id=id)  # Use get() instead of filter()
@@ -185,7 +227,7 @@ def specific_product(request, id):
     except Product.DoesNotExist:
         return JsonResponse({'error': 'Product not found'}, status=404)
 
-
+@csrf_exempt
 def productDetails(request):
 
     products = Product.objects.all()
@@ -257,10 +299,14 @@ def productadd(request):
     else:
         return JsonResponse({'error': 'Only POST requests are allowed'})
 
+
+@csrf_exempt
 def delproduct(request,id):
     delProduct=Product.objects.get(id=id)
     delProduct.delete()
     return JsonResponse({'message': 'Product deleted successfully'})
+
+
 
 @csrf_exempt
 def updateproduct(request, id):
@@ -288,14 +334,17 @@ def updateproduct(request, id):
                 prodImageTwo=request.FILES.get('prodImageTwo'),
                 prodImageThree=request.FILES.get('prodImageThree'),
                 prodImageFour=request.FILES.get('prodImageFour'),
-                prodImageUrl=request.FILES.get('prodImageUrl'),
-                
-            )
+                # prodImageUrl=request.FILES.get('prodImageUrl'),
+            )            
+
             return JsonResponse({'message': 'product updated successfully'})
         else:
             return JsonResponse({'message': 'product not found'}, status=404)
     else:
         return JsonResponse({'message': 'Invalid request method'}, status=405)
+
+
+
 
 
 @csrf_exempt
@@ -312,6 +361,8 @@ def specific_category(request, id):
     else:
         return JsonResponse({'error': 'Category not found'}, status=404) 
 
+
+
 def categoryDetails(request):
     category = Category.objects.all()
     category_list = []
@@ -323,6 +374,7 @@ def categoryDetails(request):
             'cateImage': categ.cateImage.url if categ.cateImage else None,  # Accessing the URL property
         })
     return JsonResponse({'Categories': category_list})    
+
 
 
 @csrf_exempt
@@ -343,7 +395,10 @@ def categoryadd(request):
     else:
         return JsonResponse({'error': 'Only POST requests are allowed'})
 
-def delcategory(request,id):
+
+
+@csrf_exempt
+def delCategory(request,id):
     delCategory=Category.objects.get(id=id)
     delCategory.delete()
     return JsonResponse({'message': 'category deleted successfully'})    
@@ -391,23 +446,33 @@ def spcific_subcategory(request, id):
     except SubCategory.DoesNotExist:
         return JsonResponse({'error': 'SubCategory does not exist'}, status=404)    
 
-
+@csrf_exempt
 def subcategoryDetails(request):
     sub_category = SubCategory.objects.all()
     sub_category_list = []
+
     for categ in sub_category:
+        # Include subCateParent details (if desired)
+        sub_category_parent_data = None
+        if categ.subCateParent:
+            sub_category_parent_data = {
+                'ID': categ.subCateParent.id,
+                'CateName': categ.subCateParent.cateName,  # Assuming 'name' field exists in Category
+            }
+
         sub_category_list.append({
             'ID': categ.id,
             'subCateName': categ.subCateName,
             'subCateDescription': categ.subCateDescription,
-            # 'subCateParent': categ.subCateParent,
-            'subCateImage': categ.subCateImage.url if categ.subCateImage else None,  # Accessing the URL property
+            'subCateImage': categ.subCateImage.url if categ.subCateImage else None,
+            'subCateParent': sub_category_parent_data,  # Include parent details as a dictionary
         })
-    return JsonResponse({'sub_categories': sub_category_list})  
+
+    return JsonResponse({'sub_categories': sub_category_list})
 
 
-    
-       
+
+      
 @csrf_exempt
 def addsub_category(request):
     if request.method == 'POST':
@@ -432,7 +497,7 @@ def addsub_category(request):
     else:
         return JsonResponse({'error': 'Only POST requests are allowed'})
 
-
+@csrf_exempt
 def delsub_category(request,id):
     sub_category=SubCategory.objects.get(id=id)
     sub_category.delete()
@@ -474,3 +539,27 @@ def updatesub_CateName(request, id):
         return JsonResponse({'message': 'Subcategory updated successfully'})
     else:
         return JsonResponse({'message': 'Invalid request method'}, status=405)
+    
+    
+    
+    
+    
+# count all products and users for Chart
+
+@csrf_exempt
+def countAllProductsAndUsers(request):
+    if request.method != 'GET':
+        return JsonResponse({'message': 'Invalid request method. Use GET'}, status=405)
+
+    products = Product.objects.all().count()
+    vendor_count = User.objects.filter(usertype='vendor').count()
+    customer_count = User.objects.filter(usertype='customer').count()
+
+    data = {
+        'total_products': products,
+        'total_users': {
+            'vendors': vendor_count,
+            'customers': customer_count,
+        },
+    }
+    return JsonResponse(data)
