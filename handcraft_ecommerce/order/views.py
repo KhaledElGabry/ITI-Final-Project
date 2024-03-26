@@ -115,7 +115,7 @@ class CreateCheckOutSession(APIView):
                         # Provide the exact Price ID (for example, pr_1234) of the product you want to sell
                         'price_data': {
                             'currency': 'usd',
-                            'unit_amount': int(order.total_price) * 100,
+                            'unit_amount': int(order.total_price+10) * 100  ,
                             'product_data': {
                                 'name': str(order.pk),
                                 # 'images': [f"{API_URL}/{orderitem_id.product_image}"]
@@ -295,8 +295,9 @@ def get_vendor_orders(request):
 @authentication_classes([TokenAuthentication])
 def delivered_order(request, pk):
     order = get_object_or_404(Order, id=pk)
-    order.status=Order.DELIVERED_STATE
-    order.save()
+    if order.status not in [Order.PENDING_STATE, Order.CANCEL_STATE]:
+        order.status=Order.DELIVERED_STATE
+        order.save()
     return Response({'details': "order is delivered"})
 
 
