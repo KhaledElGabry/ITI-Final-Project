@@ -12,6 +12,12 @@ import os
 from django.shortcuts import get_object_or_404
 from django.core.exceptions import ObjectDoesNotExist
 
+from rest_framework import status
+from rest_framework.views import APIView
+from order.models import Order, OrderItem
+from order.serializers import OrderSerializer
+from rest_framework.decorators import api_view, permission_classes
+
 @csrf_exempt
 def admin_login(request):
     if request.method == 'POST':
@@ -474,3 +480,21 @@ def updatesub_CateName(request, id):
         return JsonResponse({'message': 'Subcategory updated successfully'})
     else:
         return JsonResponse({'message': 'Invalid request method'}, status=405)
+    
+
+@api_view(['GET'])
+def get_orders(request):
+    orders = Order.objects.all()
+    serializer = OrderSerializer(orders, many=True)
+    return JsonResponse({'orders': serializer.data})
+
+@api_view(['PUT'])
+def shipped_order(request, pk):
+    order = get_object_or_404(Order, id=pk)
+    
+    if order.status == Order.PENDING_STATE:
+        order.status = Order.SHIPPED_STATE
+        order.save()
+        return JsonResponse({'details': "Order is shipped"})
+    else:
+        return JsonResponse({'error': "Cannot cancel order with 'shipped' status."}, status=status.HTTP_403_FORBIDDEN)    

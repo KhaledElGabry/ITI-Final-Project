@@ -34,4 +34,8 @@ urlpatterns = [
     path('addsub_category/',views.addsub_category,name='addsub_category'),
     path('delsub_category/<int:id>/',views.delsub_category,name='delsub_category'),
     path('updatesub_CateName/<int:id>/',views.updatesub_CateName,name='updatesub_CateName'),
+
+    # order
+    path('get_orders/',views.get_orders,name='get_orders'),
+    path('shipped_order/<int:pk>/',views.shipped_order,name='shipped_order'),
 ]
