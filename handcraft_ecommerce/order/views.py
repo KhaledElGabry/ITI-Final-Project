@@ -15,6 +15,7 @@ from django.shortcuts import render, redirect
 from rest_framework.views import APIView
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.core.mail import send_mail
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -35,7 +36,11 @@ def process_order(request, pk):
         return Response({'order': serializer.data})
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
+def send_orders_email(user):
+    subject = 'New Order Created.'
+    message = f'Dear {user.first_name} {user.last_name}, We are excited to inform you that a new order has been placed on your store. Please log in to your account to view more details and manage the order.\nThank you for using our platform: http://localhost:3000/VendorOrderHistory'
+    
+    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email])
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -80,6 +85,13 @@ def new_order(request):
 
     # Serialize the order
     serializer = OrderSerializer(order)
+    Items = OrderItem.objects.filter(order=order.id)
+    users_set = set()
+    for item in Items:
+        users_set.add(item.product.prodVendor)
+    for user in users_set:
+        send_orders_email(user)
+    users_set.clear()
 
     return Response(serializer.data, status=status.HTTP_201_CREATED)
 
