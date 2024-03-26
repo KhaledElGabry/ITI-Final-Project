@@ -10,6 +10,10 @@ from django. contrib import messages
 import os
 from django.shortcuts import get_object_or_404
 from django.core.exceptions import ObjectDoesNotExist
+from product.models import Product
+from order.models import OrderItem , Order
+from django.db.models import Sum, Count 
+from django.db.models import Q 
 
 
 
@@ -69,6 +73,7 @@ def specific_user(request, id):
             'first_name': user.first_name,
             'last_name': user.last_name,
             'email': user.email,
+            'password': user.password,
             'phone': user.phone,
             'usertype': user.usertype,
             'ssn': user.ssn,
@@ -92,6 +97,7 @@ def userDetails(request):
             'first_name': user.first_name,
             'last_name': user.last_name,
             'email': user.email,
+            'password': user.password,
             'phone': user.phone,
             'usertype': user.usertype,
             'ssn': user.ssn,
@@ -563,3 +569,63 @@ def countAllProductsAndUsers(request):
         },
     }
     return JsonResponse(data)
+
+
+# count most selling products for Chart
+
+def mostSellingProducts(request):
+    top_n = request.GET.get('top_n', 10)  # Default to 10 if top_n is not provided
+    try:
+        top_n = int(top_n)  # Ensure top_n is an integer
+    except ValueError:
+        return JsonResponse({'error': 'Invalid top_n parameter'}, status=400)
+
+    if top_n <= 0:
+        return JsonResponse({'error': 'top_n must be a positive integer'}, status=400)
+    product_quantities = OrderItem.objects.values('product_id').annotate(quantity=Sum('quantity'))
+
+    top_selling_products = (
+        product_quantities.order_by('-quantity')[:top_n]
+    )
+
+    product_data = []
+    for entry in top_selling_products:
+        product_id = entry['product_id']
+        quantity = entry['quantity']
+        try:
+            product = Product.objects.get(pk=product_id)  
+            product_data.append({
+                'id': product.id, 
+                'name': product.prodName,
+                'quantity_sold': quantity,
+            })
+        except Product.DoesNotExist:
+            pass
+    return JsonResponse({'most_selling_products': product_data})
+
+
+
+# count most frequent customers for Chart
+
+def mostFrequentCustomers(request, top_n=10):
+    try:
+        top_n = int(top_n)  
+    except ValueError:
+        return JsonResponse({'error': 'Invalid top_n parameter'}, status=400)
+
+    if top_n <= 0:
+        return JsonResponse({'error': 'top_n must be a positive integer'}, status=400)
+    
+    customer_order_counts = User.objects.filter(usertype='customer').annotate(
+        order_count=Count('order', filter=Q(order__status='delivered'))
+    ).order_by('-order_count')[:top_n]
+
+    customer_data = []
+    for user in customer_order_counts:
+        customer_data.append({
+            'id': user.id,
+            'name': f"{user.first_name} {user.last_name}" if user.first_name or user.last_name else user.username,
+            'order_count': user.order_count,
+        })
+
+    return JsonResponse({'most_frequent_customers': customer_data})
