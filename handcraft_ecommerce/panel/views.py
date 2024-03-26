@@ -71,6 +71,7 @@ def specific_user(request, id):
             'email': user.email,
             'phone': user.phone,
             'usertype': user.usertype,
+            'password': user.password,
             'ssn': user.ssn,
             'shopname': user.shopname,
             'address': user.address,
@@ -563,3 +564,5 @@ def countAllProductsAndUsers(request):
         },
     }
     return JsonResponse(data)
+
+

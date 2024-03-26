@@ -164,7 +164,6 @@ def handle_payment_success(request):
                     # Update order status to Paid and mark it as paid
                     order.payment_status = PaymentStatus.PAID
                     order.is_paid = True
-                    order.status=Order.SHIPPED_STATE
                     order.save()
 
                     # Clear the items from the user's cart
@@ -307,9 +306,11 @@ def delivered_order(request, pk):
 def delete_order(request, pk):
     order = get_object_or_404(Order, id=pk)
     
-    if order.status != Order.DELIVERED_STATE:
+    if order.status == Order.PENDING_STATE:
         order.status = Order.CANCEL_STATE
         order.save()
         return Response({'details': "Order is canceled"})
     else:
-        return Response({'error': "Cannot cancel order with 'Delivered' status."}, status=status.HTTP_403_FORBIDDEN)
+        return Response({'error': "Cannot cancel order with 'Delivered or shipped' status."}, status=status.HTTP_403_FORBIDDEN)
+
+
