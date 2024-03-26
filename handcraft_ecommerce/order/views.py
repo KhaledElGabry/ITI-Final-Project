@@ -268,10 +268,11 @@ def get_vendor_orders(request):
             'payment_status': order.payment_status,
             'payment_mode': order.payment_mode,
             'is_paid': order.is_paid,
-            'user': user_data,
+            'user': user_data,  # Include total price for all products in the order
+            'products': product_details ,
             'status': order.status,
-            'total_price': total_price,  # Include total price for all products in the order
-            'products': product_details  # Include product details for each order item
+            'total_price': total_price,
+            'created_at': order.created_at# Include product details for each order item
         })
 
     return Response({'orders': order_data})
