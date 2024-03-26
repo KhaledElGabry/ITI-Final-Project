@@ -184,8 +184,7 @@ def handle_payment_success(request):
     else:
         return Response({"detail": "Method not allowed."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
-
-# customer 
+from product.serializers import ProductSerializer
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -201,13 +200,15 @@ def get_customer_orders(request):
         order_items = order.orderitems.all()
         items_data = []
         for item in order_items:
+            # Get the discounted price of the product
+            discounted_price = ProductSerializer().get_discounted_price(item.product)
+
             items_data.append({
                 'product_name': item.product.prodName,
                 'quantity': item.quantity,
                 'product_image_thumbnail': item.product.prodImageThumbnail.url if item.product.prodImageThumbnail else None,
-                'item_id':item.product.id,
-                'product_price': item.product.prodPrice
-
+                'item_id': item.product.id,
+                'product_price': discounted_price  # Include discounted price in the response
             })
         order_data.append({
             'order_id': order.id,
@@ -219,18 +220,17 @@ def get_customer_orders(request):
             'user': order.user.id if order.user else None,
             'status': order.status,
             'order_items': items_data,  # Include the list of order items
-            'total_price': order.total_price,
+            'total_price': order.total_price +10,
             'created_at': order.created_at
         })
 
     return Response({'orders': order_data})
 
 
-
-
 # vendor 
 from account.models import User
 from account.serializers import *
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 @authentication_classes([TokenAuthentication])
@@ -256,17 +256,20 @@ def get_vendor_orders(request):
 
         # Fetch product details for each order item
         for order_item in order_items:
+            # Get the discounted price of the product
+            discounted_price = ProductSerializer().get_discounted_price(order_item.product)
+
             product_details.append({
                 'product_name': order_item.product.prodName,
-                'product_price': order_item.product.prodPrice,
+                'product_price': discounted_price,  # Include discounted price in the response
                 'product_description': order_item.product.prodDescription,
                 'product_image_thumbnail': order_item.product.prodImageThumbnail.url if order_item.product.prodImageThumbnail else None,
                 'stock': order_item.product.prodStock,
                 'quantity': order_item.quantity,
             })
 
-            # Add the price of each product to the total price
-            total_price += order_item.product.prodPrice
+            # Add the discounted price of each product to the total price
+            total_price += discounted_price
         
         # Serialize user object
         user_data = UserSerializer(order.user).data
@@ -279,15 +282,14 @@ def get_vendor_orders(request):
             'payment_status': order.payment_status,
             'payment_mode': order.payment_mode,
             'is_paid': order.is_paid,
-            'user': user_data,  # Include total price for all products in the order
-            'products': product_details ,
+            'user': user_data,
+            'products': product_details,
             'status': order.status,
             'total_price': total_price,
-            'created_at': order.created_at# Include product details for each order item
+            'created_at': order.created_at
         })
 
     return Response({'orders': order_data})
-
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
