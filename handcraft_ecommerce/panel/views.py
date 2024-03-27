@@ -574,7 +574,7 @@ def countAllProductsAndUsers(request):
 # count most selling products for Chart
 
 def mostSellingProducts(request):
-    top_n = request.GET.get('top_n', 10)  # Default to 10 if top_n is not provided
+    top_n = request.GET.get('top_n', 10)
     try:
         top_n = int(top_n)  # Ensure top_n is an integer
     except ValueError:
@@ -617,7 +617,7 @@ def mostFrequentCustomers(request, top_n=10):
         return JsonResponse({'error': 'top_n must be a positive integer'}, status=400)
     
     customer_order_counts = User.objects.filter(usertype='customer').annotate(
-        order_count=Count('order', filter=Q(order__status='delivered'))
+        order_count=Count('order', filter=Q(order__status='D'))
     ).order_by('-order_count')[:top_n]
 
     customer_data = []
