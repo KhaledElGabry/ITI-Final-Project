@@ -588,7 +588,7 @@ def countAllProductsAndUsers(request):
 # count most selling products for Chart
 
 def mostSellingProducts(request):
-    top_n = request.GET.get('top_n', 10)  # Default to 10 if top_n is not provided
+    top_n = request.GET.get('top_n', 10)
     try:
         top_n = int(top_n)  # Ensure top_n is an integer
     except ValueError:
@@ -631,7 +631,7 @@ def mostFrequentCustomers(request, top_n=10):
         return JsonResponse({'error': 'top_n must be a positive integer'}, status=400)
     
     customer_order_counts = User.objects.filter(usertype='customer').annotate(
-        order_count=Count('order', filter=Q(order__status='delivered'))
+        order_count=Count('order', filter=Q(order__status='D'))
     ).order_by('-order_count')[:top_n]
 
     customer_data = []
@@ -644,11 +644,48 @@ def mostFrequentCustomers(request, top_n=10):
 
     return JsonResponse({'most_frequent_customers': customer_data})
 
+
+
+
+# All Orders
+
 @api_view(['GET'])
 def get_orders(request):
     orders = Order.objects.all()
-    serializer = OrderSerializer(orders, many=True)
-    return JsonResponse({'orders': serializer.data})
+    orders_data = []
+
+    for order in orders:
+        order_data = {
+            'order_id': order.id,
+            'address': order.address,
+            'phone_number': order.phone_number,
+            'payment_status': order.payment_status,
+            'payment_mode': order.payment_mode,
+            'is_paid': order.is_paid,
+            'user': order.user.id if order.user else None,
+            'status': order.status,
+            'total_price': order.total_price,
+            'created_at': order.created_at,
+            'products': []
+        }
+
+        # Include product details for each order item
+        for order_item in order.orderitems.all():
+            product_data = {
+                'product_id': order_item.product.id,
+                'product_name': order_item.product.prodName,
+                'product_price': order_item.product.prodPrice,
+                'quantity': order_item.quantity
+            }
+            order_data['products'].append(product_data)
+
+        orders_data.append(order_data)
+
+    return JsonResponse({'orders': orders_data})
+
+
+
+# All Shipped Orders
 
 @api_view(['PUT'])
 def shipped_order(request, pk):
@@ -660,3 +697,4 @@ def shipped_order(request, pk):
         return JsonResponse({'details': "Order is shipped"})
     else:
         return JsonResponse({'error': "Cannot cancel order with 'shipped' status."}, status=status.HTTP_403_FORBIDDEN)
+
